@@ -12,3 +12,5 @@ Starting point for new Go projects:
 * Setup for building and publishing Docker images
 
 For public projects also take a look at https://github.com/flashbots/flashbots-repository-template
+
+We also have a repository for common Go utilities: https://github.com/flashbots/go-utils
