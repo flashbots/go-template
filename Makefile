@@ -15,6 +15,9 @@ build:
 test:
 	go test ./...
 
+test-race:
+	go test -race ./...
+
 lint:
 	gofmt -d ./
 	go vet ./...
