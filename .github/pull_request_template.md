@@ -1,18 +1,18 @@
-Related issue(s):
+## 📝 Summary
 
+<!--- A general summary of your changes -->
 
-Description:
+## ⛱ Motivation and Context
 
+<!--- Why is this change required? What problem does it solve? -->
 
-Problem(s) & goal(s):
+## 📚 References
 
-
-Additional context & references:
-
+<!-- Any interesting external links to documentation, articles, tweets which add value to the PR -->
 
 ---
 
-I have run these commands:
+## ✅ I have run these commands
 
 * [ ] `make lint`
 * [ ] `make test`
