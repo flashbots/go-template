@@ -14,3 +14,23 @@ Starting point for new Go projects:
 For public projects also take a look at https://github.com/flashbots/flashbots-repository-template
 
 We also have a repository for common Go utilities: https://github.com/flashbots/go-utils
+
+---
+
+## Getting started
+
+### Install dependencies
+
+```bash
+go install mvdan.cc/gofumpt@latest
+go install honnef.co/go/tools/cmd/staticcheck@v0.3.1
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.48.0
+```
+
+### Test
+
+```bash
+make test
+make test-race
+make lint
+```
