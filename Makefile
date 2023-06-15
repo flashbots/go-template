@@ -24,6 +24,14 @@ lint:
 	staticcheck ./...
 	golangci-lint run
 
+fmt:
+	gofmt -s -w .
+	gofumpt -extra -w .
+	gci write .
+	go mod tidy
+
+lt: lint test
+
 gofumpt:
 	gofumpt -l -w -extra .
 
