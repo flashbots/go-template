@@ -1,6 +1,6 @@
 module github.com/flashbots/go-template
 
-go 1.18
+go 1.20
 
 require go.uber.org/zap v1.23.0
 
