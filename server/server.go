@@ -1,0 +1,80 @@
+// Package server implements the core HTTP server
+package server
+
+import (
+	"context"
+	"errors"
+	"net/http"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
+
+	"github.com/flashbots/go-template/config"
+	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
+	"go.uber.org/zap"
+)
+
+type Server struct {
+	cfg         *config.Server
+	id          uuid.UUID
+	isHealthy   bool
+	isHealthyMx sync.RWMutex
+	log         *zap.Logger
+	srv         *http.Server
+}
+
+func New(cfg *config.Server) *Server {
+	id := uuid.Must(uuid.NewRandom())
+	s := &Server{
+		cfg:         cfg,
+		id:          id,
+		isHealthy:   true,
+		isHealthyMx: sync.RWMutex{},
+		log:         cfg.Log.With(zap.String("serverID", id.String())),
+		srv:         nil,
+	}
+
+	mux := chi.NewRouter()
+	mux.With(s.logger).Get("/api", s.handleAPI) // Never serve at `/` (root) path
+	mux.With(s.logger).Get("/health", s.handleHealthcheck)
+	mux.With(s.logger).Get("/drain", s.handleDrain)
+	mux.With(s.logger).Get("/undrain", s.handleUndrain)
+
+	s.srv = &http.Server{
+		Addr:         cfg.ListenAddr,
+		Handler:      mux,
+		ReadTimeout:  cfg.ReadTimeout,
+		WriteTimeout: cfg.WriteTimeout,
+	}
+
+	return s
+}
+
+func (s *Server) Run() {
+	exit := make(chan os.Signal, 1)
+	signal.Notify(exit, os.Interrupt, syscall.SIGTERM)
+
+	s.log.Info("Starting HTTP server",
+		zap.String("listenAddress", s.cfg.ListenAddr),
+		zap.String("version", s.cfg.Version),
+	)
+
+	go func() {
+		if err := s.srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			s.log.Error("HTTP server failed", zap.Error(err))
+		}
+	}()
+
+	<-exit
+
+	ctx, cancel := context.WithTimeout(context.Background(), s.cfg.GracefulShutdownDuration)
+	defer cancel()
+
+	if err := s.srv.Shutdown(ctx); err != nil {
+		s.log.Error("Graceful HTTP server shutdown failed", zap.Error(err))
+	} else {
+		s.log.Info("HTTP server gracefully stopped")
+	}
+}

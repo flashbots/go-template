@@ -1,57 +1,43 @@
 package main
 
 import (
-	"flag"
+	"errors"
+	"fmt"
+	"html"
+	"io/fs"
 	"os"
+	"time"
 
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"github.com/flashbots/go-template/config"
+	"github.com/flashbots/go-template/server"
 )
 
-var (
-	version = "dev" // is set during build process
-
-	// Default values
-	defaultDebug      = os.Getenv("DEBUG") == "1"
-	defaultLogProd    = os.Getenv("LOG_PROD") == "1"
-	defaultLogService = os.Getenv("LOG_SERVICE")
-
-	// Flags
-	debugPtr      = flag.Bool("debug", defaultDebug, "print debug output")
-	logProdPtr    = flag.Bool("log-prod", defaultLogProd, "log in production mode (json)")
-	logServicePtr = flag.String("log-service", defaultLogService, "'service' tag to logs")
-)
+var version = "dev" // is set during build process
 
 func main() {
-	flag.Parse()
+	cfg := config.NewServerConfig(version)
 
-	logger, _ := zap.NewDevelopment()
-	if *logProdPtr {
-		atom := zap.NewAtomicLevel()
-		if *debugPtr {
-			atom.SetLevel(zap.DebugLevel)
+	// Make sure to flush the logger before exiting the app
+	defer func() {
+		if err := cfg.Log.Sync(); err != nil {
+			// Workaround for `inappropriate ioctl for device` or `invalid argument` errors
+			// See: https://github.com/uber-go/zap/issues/880#issuecomment-731261906
+			var pathErr *fs.PathError
+			if errors.As(err, &pathErr) {
+				if pathErr.Path == "/dev/stderr" && pathErr.Op == "sync" {
+					return
+				}
+			}
+			fmt.Fprintf(
+				os.Stderr,
+				"{\"level\":\"error\",\"ts\":\"%s\",\"msg\":\"Failed to sync the logger\",\"error\":\"%s\"}\n",
+				time.Now().Format(time.RFC3339),
+				html.EscapeString(err.Error()),
+			)
 		}
+	}()
 
-		encoderCfg := zap.NewProductionEncoderConfig()
-		encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
-		logger = zap.New(zapcore.NewCore(
-			zapcore.NewJSONEncoder(encoderCfg),
-			zapcore.Lock(os.Stdout),
-			atom,
-		))
-	}
-	defer func() { _ = logger.Sync() }()
-	log := logger.Sugar()
+	srv := server.New(cfg)
 
-	if *logServicePtr != "" {
-		log = log.With("service", *logServicePtr)
-	}
-
-	log.Info("Starting your-project", "version", version)
-
-	log.Debug("debug message")
-	log.Info("info message")
-	log.Warn("warn message")
-	log.Error("error message with, trace in dev mode")
-	// log.Fatal("fatal message")
+	srv.Run()
 }
