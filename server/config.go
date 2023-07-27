@@ -1,11 +1,11 @@
-// Package config provides basic primitives for server configuration
-package config
+package server
 
 import (
 	"flag"
 	"time"
 
-	"github.com/flashbots/go-template/util"
+	"github.com/flashbots/go-utils/envflag"
+	"github.com/flashbots/go-utils/logutils"
 	"go.uber.org/zap"
 )
 
@@ -13,17 +13,17 @@ type flags struct {
 	debug        *bool
 	drainSeconds *int
 	listenAddr   *string
-	logProd      *bool
+	logDev       *bool
 	logService   *string
 }
 
 func defaults() flags {
 	fg := flags{
-		debug:        util.FlagB("debug", false, "print debug output"),
-		drainSeconds: util.FlagI("drain-seconds", 45, "seconds to wait in drain HTTP request"),
-		listenAddr:   util.FlagS("listen-addr", "127.0.0.1:8080", "address to listen on"),
-		logProd:      util.FlagB("log-prod", true, "log in production mode (json)"),
-		logService:   util.FlagS("log-service", "your-project", "'service' tag to logs"),
+		debug:        envflag.MustBool("debug", false, "print debug output"),
+		drainSeconds: envflag.MustInt("drain-seconds", 45, "seconds to wait in drain HTTP request"),
+		listenAddr:   envflag.String("listen-addr", "127.0.0.1:8080", "address to listen on"),
+		logDev:       envflag.MustBool("log-dev", false, "log in development mode (json)"),
+		logService:   envflag.String("log-service", "your-project", "'service' tag to logs"),
 	}
 	flag.Parse()
 	return fg
@@ -31,7 +31,7 @@ func defaults() flags {
 
 // -----------------------------------------------------------------------------
 
-type Server struct {
+type Config struct {
 	DrainDuration            time.Duration
 	GracefulShutdownDuration time.Duration
 	ListenAddr               string
@@ -41,11 +41,13 @@ type Server struct {
 	Version                  string
 }
 
-func NewServerConfig(version string) *Server {
+func NewConfig(version string) *Config {
 	flags := defaults()
-	log := getLogger(flags)
+	log := logutils.MustGetZapLogger(
+		logutils.LogDevMode(*flags.logDev),
+	)
 
-	srv := &Server{
+	cfg := &Config{
 		DrainDuration:            time.Duration(*flags.drainSeconds) * time.Second,
 		GracefulShutdownDuration: 30 * time.Second,
 		ListenAddr:               *flags.listenAddr,
@@ -55,12 +57,12 @@ func NewServerConfig(version string) *Server {
 		WriteTimeout:             30 * time.Second,
 	}
 
-	if srv.DrainDuration >= srv.ReadTimeout {
+	if cfg.DrainDuration >= cfg.ReadTimeout {
 		log.Warn("Drain duration is not shorter that read timeout",
-			zap.Duration("drainDuration", srv.DrainDuration),
-			zap.Duration("readTimeout", srv.ReadTimeout),
+			zap.Duration("drainDuration", cfg.DrainDuration),
+			zap.Duration("readTimeout", cfg.ReadTimeout),
 		)
 	}
 
-	return srv
+	return cfg
 }

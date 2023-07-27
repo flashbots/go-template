@@ -8,14 +8,13 @@ import (
 	"os"
 	"time"
 
-	"github.com/flashbots/go-template/config"
 	"github.com/flashbots/go-template/server"
 )
 
 var version = "dev" // is set during build process
 
 func main() {
-	cfg := config.NewServerConfig(version)
+	cfg := server.NewConfig(version)
 
 	// Make sure to flush the logger before exiting the app
 	defer func() {

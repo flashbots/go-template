@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/flashbots/go-template/config"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 )
@@ -19,7 +18,7 @@ func Test_Handlers_Healthcheck_Drain_Undrain(t *testing.T) {
 	)
 
 	//nolint: exhaustruct
-	s := New(&config.Server{
+	s := New(&Config{
 		DrainDuration: latency,
 		ListenAddr:    listenAddr,
 		Log:           zap.Must(zap.NewDevelopment()),

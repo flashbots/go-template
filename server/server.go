@@ -17,7 +17,7 @@ import (
 )
 
 type Server struct {
-	cfg         *config.Server
+	cfg         *Config
 	id          uuid.UUID
 	isHealthy   bool
 	isHealthyMx sync.RWMutex
