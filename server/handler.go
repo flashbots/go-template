@@ -16,10 +16,7 @@ func (s *Server) handleLivenessCheck(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleReadinessCheck(w http.ResponseWriter, r *http.Request) {
-	s.isReadyMx.RLock()
-	defer s.isReadyMx.RUnlock()
-
-	if !s.isReady {
+	if !s.isReady.Load() {
 		w.WriteHeader(http.StatusServiceUnavailable)
 		return
 	}
@@ -28,34 +25,18 @@ func (s *Server) handleReadinessCheck(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleDrain(w http.ResponseWriter, r *http.Request) {
-	l := logutils.ZapFromRequest(r)
-
-	s.isReadyMx.Lock()
-	if !s.isReady {
-		s.isReadyMx.Unlock()
+	if wasReady := s.isReady.Swap(false); !wasReady {
 		return
 	}
-
-	s.isReady = false
+	l := logutils.ZapFromRequest(r)
 	l.Info("Server marked as not ready")
-
-	// Let's not hold onto the lock in our sleep
-	s.isReadyMx.Unlock()
-
-	// Give LB enough time to detect us unhealthy
-	time.Sleep(s.cfg.DrainDuration)
+	time.Sleep(s.cfg.DrainDuration) // Give LB enough time to detect us not ready
 }
 
 func (s *Server) handleUndrain(w http.ResponseWriter, r *http.Request) {
-	l := logutils.ZapFromRequest(r)
-
-	s.isReadyMx.Lock()
-	defer s.isReadyMx.Unlock()
-
-	if s.isReady {
+	if wasReady := s.isReady.Swap(true); wasReady {
 		return
 	}
-
-	s.isReady = true
+	l := logutils.ZapFromRequest(r)
 	l.Info("Server marked as ready")
 }

@@ -5,33 +5,32 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"sync"
 
 	"github.com/flashbots/go-utils/httplogger"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"go.uber.org/atomic"
 	"go.uber.org/zap"
 )
 
 type Server struct {
-	cfg       *Config
-	id        uuid.UUID
-	isReady   bool
-	isReadyMx sync.RWMutex
-	log       *zap.Logger
-	srv       *http.Server
+	cfg     *Config
+	id      uuid.UUID
+	isReady atomic.Bool
+	log     *zap.Logger
+	srv     *http.Server
 }
 
 func New(cfg *Config) *Server {
 	id := uuid.Must(uuid.NewRandom())
 	s := &Server{
-		cfg:       cfg,
-		id:        id,
-		isReady:   true,
-		isReadyMx: sync.RWMutex{},
-		log:       cfg.Log.With(zap.String("serverID", id.String())),
-		srv:       nil,
+		cfg:     cfg,
+		id:      id,
+		isReady: atomic.Bool{},
+		log:     cfg.Log.With(zap.String("serverID", id.String())),
+		srv:     nil,
 	}
+	s.isReady.Swap(true)
 
 	mux := chi.NewRouter()
 	mux.With(s.httpLogger).Get("/api", s.handleAPI) // Never serve at `/` (root) path
