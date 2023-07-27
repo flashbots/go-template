@@ -17,28 +17,29 @@ import (
 )
 
 type Server struct {
-	cfg         *Config
-	id          uuid.UUID
-	isHealthy   bool
-	isHealthyMx sync.RWMutex
-	log         *zap.Logger
-	srv         *http.Server
+	cfg       *Config
+	id        uuid.UUID
+	isReady   bool
+	isReadyMx sync.RWMutex
+	log       *zap.Logger
+	srv       *http.Server
 }
 
-func New(cfg *config.Server) *Server {
+func New(cfg *Config) *Server {
 	id := uuid.Must(uuid.NewRandom())
 	s := &Server{
-		cfg:         cfg,
-		id:          id,
-		isHealthy:   true,
-		isHealthyMx: sync.RWMutex{},
-		log:         cfg.Log.With(zap.String("serverID", id.String())),
-		srv:         nil,
+		cfg:       cfg,
+		id:        id,
+		isReady:   true,
+		isReadyMx: sync.RWMutex{},
+		log:       cfg.Log.With(zap.String("serverID", id.String())),
+		srv:       nil,
 	}
 
 	mux := chi.NewRouter()
 	mux.With(s.httpLogger).Get("/api", s.handleAPI) // Never serve at `/` (root) path
-	mux.With(s.httpLogger).Get("/health", s.handleHealthcheck)
+	mux.With(s.httpLogger).Get("/livez", s.handleLivenessCheck)
+	mux.With(s.httpLogger).Get("/readyz", s.handleReadinessCheck)
 	mux.With(s.httpLogger).Get("/drain", s.handleDrain)
 	mux.With(s.httpLogger).Get("/undrain", s.handleUndrain)
 

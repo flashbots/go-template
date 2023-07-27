@@ -25,14 +25,14 @@ func Test_Handlers_Healthcheck_Drain_Undrain(t *testing.T) {
 	})
 
 	{ // Check health
-		req := httptest.NewRequest(http.MethodGet, "http://localhost"+listenAddr+"/health", nil)
+		req := httptest.NewRequest(http.MethodGet, "http://localhost"+listenAddr+"/readyz", nil)
 		w := httptest.NewRecorder()
-		s.handleHealthcheck(w, req)
+		s.handleReadinessCheck(w, req)
 		resp := w.Result()
 		defer resp.Body.Close()
 		_, err := io.ReadAll(resp.Body)
 		assert.NoError(t, err)
-		assert.Equal(t, 200, resp.StatusCode, "Healthcheck must return 200 before draining")
+		assert.Equal(t, http.StatusOK, resp.StatusCode, "Healthcheck must return `Ok` before draining")
 	}
 
 	{ // Drain
@@ -45,19 +45,19 @@ func Test_Handlers_Healthcheck_Drain_Undrain(t *testing.T) {
 		defer resp.Body.Close()
 		_, err := io.ReadAll(resp.Body)
 		assert.NoError(t, err)
-		assert.Equal(t, 200, resp.StatusCode, "Must return 200 for calls to `/drain`")
+		assert.Equal(t, http.StatusOK, resp.StatusCode, "Must return `Ok` for calls to `/drain`")
 		assert.GreaterOrEqual(t, duration, latency, "Must wait long enough during draining")
 	}
 
 	{ // Check health
-		req := httptest.NewRequest(http.MethodGet, "http://localhost"+listenAddr+"/health", nil)
+		req := httptest.NewRequest(http.MethodGet, "http://localhost"+listenAddr+"/readyz", nil)
 		w := httptest.NewRecorder()
-		s.handleHealthcheck(w, req)
+		s.handleReadinessCheck(w, req)
 		resp := w.Result()
 		defer resp.Body.Close()
 		_, err := io.ReadAll(resp.Body)
 		assert.NoError(t, err)
-		assert.Equal(t, 500, resp.StatusCode, "Healthcheck must return 500 after draining")
+		assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode, "Healthcheck must return `Service Unavailable` after draining")
 	}
 
 	{ // Undrain
@@ -68,18 +68,18 @@ func Test_Handlers_Healthcheck_Drain_Undrain(t *testing.T) {
 		defer resp.Body.Close()
 		_, err := io.ReadAll(resp.Body)
 		assert.NoError(t, err)
-		assert.Equal(t, 200, resp.StatusCode, "Must return 200 for calls to `/undrain`")
+		assert.Equal(t, http.StatusOK, resp.StatusCode, "Must return `Ok` for calls to `/undrain`")
 		time.Sleep(latency)
 	}
 
 	{ // Check health
-		req := httptest.NewRequest(http.MethodGet, "http://localhost"+listenAddr+"/health", nil)
+		req := httptest.NewRequest(http.MethodGet, "http://localhost"+listenAddr+"/readyz", nil)
 		w := httptest.NewRecorder()
-		s.handleHealthcheck(w, req)
+		s.handleReadinessCheck(w, req)
 		resp := w.Result()
 		defer resp.Body.Close()
 		_, err := io.ReadAll(resp.Body)
 		assert.NoError(t, err)
-		assert.Equal(t, 200, resp.StatusCode, "Healthcheck must return 200 after undraining")
+		assert.Equal(t, http.StatusOK, resp.StatusCode, "Healthcheck must return `Ok` after undraining")
 	}
 }

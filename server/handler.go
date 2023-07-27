@@ -11,34 +11,36 @@ func (s *Server) handleAPI(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Server) handleHealthcheck(w http.ResponseWriter, r *http.Request) {
-	s.isHealthyMx.RLock()
-	defer s.isHealthyMx.RUnlock()
+func (s *Server) handleLivenessCheck(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
 
-	if !s.isHealthy {
-		w.WriteHeader(http.StatusInternalServerError)
+func (s *Server) handleReadinessCheck(w http.ResponseWriter, r *http.Request) {
+	s.isReadyMx.RLock()
+	defer s.isReadyMx.RUnlock()
+
+	if !s.isReady {
+		w.WriteHeader(http.StatusServiceUnavailable)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-
-	// TODO: Add body here if needed
 }
 
 func (s *Server) handleDrain(w http.ResponseWriter, r *http.Request) {
 	l := logutils.ZapFromRequest(r)
 
-	s.isHealthyMx.Lock()
-	if !s.isHealthy {
-		s.isHealthyMx.Unlock()
+	s.isReadyMx.Lock()
+	if !s.isReady {
+		s.isReadyMx.Unlock()
 		return
 	}
 
-	s.isHealthy = false
-	l.Info("Server marked as unhealthy")
+	s.isReady = false
+	l.Info("Server marked as not ready")
 
 	// Let's not hold onto the lock in our sleep
-	s.isHealthyMx.Unlock()
+	s.isReadyMx.Unlock()
 
 	// Give LB enough time to detect us unhealthy
 	time.Sleep(s.cfg.DrainDuration)
@@ -47,13 +49,13 @@ func (s *Server) handleDrain(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleUndrain(w http.ResponseWriter, r *http.Request) {
 	l := logutils.ZapFromRequest(r)
 
-	s.isHealthyMx.Lock()
-	defer s.isHealthyMx.Unlock()
+	s.isReadyMx.Lock()
+	defer s.isReadyMx.Unlock()
 
-	if s.isHealthy {
+	if s.isReady {
 		return
 	}
 
-	s.isHealthy = true
-	l.Info("Server marked as healthy")
+	s.isReady = true
+	l.Info("Server marked as ready")
 }
