@@ -6,6 +6,8 @@ import (
 	"html"
 	"io/fs"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/flashbots/go-template/server"
@@ -38,5 +40,12 @@ func main() {
 
 	srv := server.New(cfg)
 
-	srv.Run()
+	// Run server in background and wait for termination signal
+	exit := make(chan os.Signal, 1)
+	signal.Notify(exit, os.Interrupt, syscall.SIGTERM)
+	srv.RunInBackground()
+	<-exit
+
+	// Shutdown server once termination signal is received
+	srv.Shutdown()
 }

@@ -5,10 +5,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"os"
-	"os/signal"
 	"sync"
-	"syscall"
 
 	"github.com/flashbots/go-utils/httplogger"
 	"github.com/go-chi/chi/v5"
@@ -57,10 +54,7 @@ func (s *Server) httpLogger(next http.Handler) http.Handler {
 	return httplogger.LoggingMiddlewareZap(s.log, next)
 }
 
-func (s *Server) Run() {
-	exit := make(chan os.Signal, 1)
-	signal.Notify(exit, os.Interrupt, syscall.SIGTERM)
-
+func (s *Server) RunInBackground() {
 	s.log.Info("Starting HTTP server",
 		zap.String("listenAddress", s.cfg.ListenAddr),
 		zap.String("version", s.cfg.Version),
@@ -71,9 +65,9 @@ func (s *Server) Run() {
 			s.log.Error("HTTP server failed", zap.Error(err))
 		}
 	}()
+}
 
-	<-exit
-
+func (s *Server) Shutdown() {
 	ctx, cancel := context.WithTimeout(context.Background(), s.cfg.GracefulShutdownDuration)
 	defer cancel()
 
