@@ -10,7 +10,7 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/flashbots/go-template/config"
+	"github.com/flashbots/go-utils/httplogger"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -37,10 +37,10 @@ func New(cfg *config.Server) *Server {
 	}
 
 	mux := chi.NewRouter()
-	mux.With(s.logger).Get("/api", s.handleAPI) // Never serve at `/` (root) path
-	mux.With(s.logger).Get("/health", s.handleHealthcheck)
-	mux.With(s.logger).Get("/drain", s.handleDrain)
-	mux.With(s.logger).Get("/undrain", s.handleUndrain)
+	mux.With(s.httpLogger).Get("/api", s.handleAPI) // Never serve at `/` (root) path
+	mux.With(s.httpLogger).Get("/health", s.handleHealthcheck)
+	mux.With(s.httpLogger).Get("/drain", s.handleDrain)
+	mux.With(s.httpLogger).Get("/undrain", s.handleUndrain)
 
 	s.srv = &http.Server{
 		Addr:         cfg.ListenAddr,
@@ -50,6 +50,10 @@ func New(cfg *config.Server) *Server {
 	}
 
 	return s
+}
+
+func (s *Server) httpLogger(next http.Handler) http.Handler {
+	return httplogger.LoggingMiddlewareZap(s.log, next)
 }
 
 func (s *Server) Run() {

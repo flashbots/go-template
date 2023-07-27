@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/flashbots/go-template/util"
+	"github.com/flashbots/go-utils/logutils"
 )
 
 func (s *Server) handleAPI(w http.ResponseWriter, r *http.Request) {
@@ -26,7 +26,7 @@ func (s *Server) handleHealthcheck(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleDrain(w http.ResponseWriter, r *http.Request) {
-	l := util.GetLogger(r.Context(), s.log)
+	l := logutils.ZapFromRequest(r)
 
 	s.isHealthyMx.Lock()
 	if !s.isHealthy {
@@ -45,7 +45,7 @@ func (s *Server) handleDrain(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleUndrain(w http.ResponseWriter, r *http.Request) {
-	l := util.GetLogger(r.Context(), s.log)
+	l := logutils.ZapFromRequest(r)
 
 	s.isHealthyMx.Lock()
 	defer s.isHealthyMx.Unlock()
