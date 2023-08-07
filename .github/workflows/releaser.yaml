@@ -1,11 +1,21 @@
 # name: Release
 
-# on:
-#   push:
-#     tags:
-#       - 'v*'
+on:
+  push:
+    tags:
+      - 'v*'
 
-# jobs:
+jobs:
+
+  dummy:
+    name: Dummy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Dummy
+        run: exit 0
+
+
 #   docker-image:
 #     name: Publish Docker Image
 #     runs-on: ubuntu-latest

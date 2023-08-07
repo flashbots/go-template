@@ -4,8 +4,10 @@
 
 Starting point for new Go projects:
 
-* Entry file [`main.go`](https://github.com/flashbots/go-template/blob/main/main.go)
-* Logging setup using the Ethereum logger (with debug and json logging options)
+* Entry files:
+  * CLI utility: [`cmd/cli/main.go`](https://github.com/flashbots/go-template/blob/main/cmd/cli/main.go)
+  * HTTP server: [`cmd/httpserver/main.go`](https://github.com/flashbots/go-template/blob/main/cmd/httpserver/main.go)
+* Logging setup using the Zap logger (with debug and json logging options)
 * Linting (with lint, go vet and staticcheck) & tests
 * GitHub Workflow for linting and testing
 * [`Makefile`](https://github.com/flashbots/go-template/blob/main/Makefile)
@@ -19,9 +21,19 @@ We also have a repository for common Go utilities: https://github.com/flashbots/
 
 ## Getting started
 
-## Contributing
+**Build CLI**
 
-Install dependencies
+```bash
+make build-cli
+```
+
+**Build HTTP server**
+
+```bash
+make build-httpserver
+```
+
+**Install dev dependencies**
 
 ```bash
 go install mvdan.cc/gofumpt@latest
@@ -30,7 +42,7 @@ go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 go install github.com/daixiang0/gci@latest
 ```
 
-Lint, test, format
+**Lint, test, format**
 
 ```bash
 make lint
