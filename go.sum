@@ -4,8 +4,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/ethereum/go-ethereum v1.10.25 h1:5dFrKJDnYf8L6/5o42abCE6a9yJm9cs4EJVRyYMr55s=
 github.com/ethereum/go-ethereum v1.10.25/go.mod h1:EYFyF19u3ezGLD4RqOkLq+ZCXzYbLoNDdZlMt7kyKFg=
-github.com/flashbots/go-utils v0.4.10 h1:IZTiHKIi4f9O7l3FIZdd2awzJMPb9FWRPFjoY2S6VZA=
-github.com/flashbots/go-utils v0.4.10/go.mod h1:fDuVDYOlnBX1n5U1JfuGSdYnt2obx0yTgTbk7Tjwa+Q=
+github.com/flashbots/go-utils v0.4.11 h1:rIyjdPZNit3VyWhQPig9eqCw0N1qLXBPVGZdkrA8kRw=
+github.com/flashbots/go-utils v0.4.11/go.mod h1:fDuVDYOlnBX1n5U1JfuGSdYnt2obx0yTgTbk7Tjwa+Q=
 github.com/go-chi/chi/v5 v5.0.8 h1:lD+NLqFcAi1ovnVZpsnObHGW4xb4J8lNmoYVfECH1Y0=
 github.com/go-chi/chi/v5 v5.0.8/go.mod h1:DslCQbL2OYiznFReuXYUmQ2hGd1aDpCnlMNITLSKoi8=
 github.com/go-stack/stack v1.8.0 h1:5SgMzNM5HxrEjV0ww2lTmX6E2Izsfxas4+YHWRs3Lsk=

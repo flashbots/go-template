@@ -3,7 +3,7 @@ module github.com/flashbots/go-template
 go 1.20
 
 require (
-	github.com/flashbots/go-utils v0.4.10
+	github.com/flashbots/go-utils v0.4.11
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/google/uuid v1.3.0
 	github.com/stretchr/testify v1.8.0

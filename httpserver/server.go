@@ -1,5 +1,5 @@
-// Package server implements the core HTTP server
-package server
+// Package httpserver implements the core HTTP server
+package httpserver
 
 import (
 	"context"
