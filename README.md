@@ -1,6 +1,6 @@
 # go-template
 
-[![Test status](https://github.com/flashbots/go-template/workflows/Checks/badge.svg)](https://github.com/flashbots/go-template/actions?query=workflow%3A%22Checks%22)
+[![Test status](https://github.com/flashbots/go-template/workflows/Checks/badge.svg?branch=main)](https://github.com/flashbots/go-template/actions?query=workflow%3A%22Checks%22)
 
 Starting point for new Go projects:
 
@@ -19,18 +19,21 @@ We also have a repository for common Go utilities: https://github.com/flashbots/
 
 ## Getting started
 
-### Install dependencies
+## Contributing
+
+Install dependencies
 
 ```bash
 go install mvdan.cc/gofumpt@latest
-go install honnef.co/go/tools/cmd/staticcheck@v0.4.2
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.51.2
+go install honnef.co/go/tools/cmd/staticcheck@latest
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+go install github.com/daixiang0/gci@latest
 ```
 
-### Test
+Lint, test, format
 
 ```bash
-make test
-make test-race
 make lint
+make test
+make fmt
 ```
