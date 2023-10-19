@@ -12,29 +12,28 @@ import (
 var (
 	version = "dev" // is set during build process
 
-	logDev     = envflag.MustBool("log-dev", false, "log in development mode (plain text)")
+	logProd    = envflag.MustBool("log-prod", false, "log in production mode (json)")
 	logLevel   = envflag.String("log-level", "info", "log level (one of: \""+strings.Join(logutils.Levels, "\", \"")+"\")")
 	logService = envflag.String("log-service", "your-project", "\"service\" tag to logs")
-)
 
-func main() {
-	flag.Parse()
-
-	// Setup logging
-	l := logutils.MustGetZapLogger(
-		logutils.LogDevMode(*logDev),
+	log = logutils.MustGetZapLogger(
+		logutils.LogDevMode(!*logProd),
 		logutils.LogLevel(*logLevel),
 	).With(
 		zap.String("service", *logService),
 		zap.String("version", version),
 	)
-	defer logutils.FlushZap(l) // Makes sure that logger is flushed before the app exits
+)
 
-	l.Info("Starting the project")
+func main() {
+	flag.Parse()
+	defer logutils.FlushZap(log) // Makes sure that logger is flushed before the app exits
 
-	l.Debug("debug message")
-	l.Info("info message")
-	l.Warn("warn message (stacktrace added automatically when in log-dev mode)")
-	l.Error("error message (stacktrace added automatically)")
-	// l.Fatal("fatal message (stacktrace added automatically + causes the app to exit with non-zero status)")
+	log.Info("Starting the project")
+
+	log.Debug("debug message")
+	log.Info("info message")
+	log.Warn("warn message (stacktrace added automatically when in log-dev mode)")
+	log.Error("error message (stacktrace added automatically)")
+	// log.Fatal("fatal message (stacktrace added automatically + causes the app to exit with non-zero status)")
 }
