@@ -14,30 +14,41 @@ var (
 	logProd    = envflag.MustBool("log-prod", false, "log in production mode (json)")
 	logDebug   = envflag.MustBool("log-debug", false, "log debug messages")
 	logService = envflag.String("log-service", "", "'service' tag to logs")
-
-	log *slog.Logger
 )
 
-func main() {
-	flag.Parse()
+type LoggingOpts struct {
+	Debug   bool
+	JSON    bool
+	Service string
+	Version string
+}
 
+func setupLogger(opts *LoggingOpts) (log *slog.Logger) {
 	logLevel := slog.LevelInfo
-	if *logDebug {
+	if opts.Debug {
 		logLevel = slog.LevelDebug
 	}
-	if *logProd {
+
+	if opts.JSON {
 		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel}))
 	} else {
 		log = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel}))
 	}
-	log = log.With("version", version)
-	if *logService != "" {
-		log = log.With("service", *logService)
-	}
-	if *logProd {
-		log = log.With("env", "prod")
+
+	if opts.Service != "" {
+		log = log.With("service", opts.Service)
 	}
 
+	if opts.Version != "" {
+		log = log.With("version", opts.Version)
+	}
+
+	return log
+}
+
+func main() {
+	flag.Parse()
+	log := setupLogger(&LoggingOpts{*logDebug, *logProd, *logService, version})
 	log.Info("Starting the project")
 
 	log.Debug("debug message")
