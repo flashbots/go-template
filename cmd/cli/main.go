@@ -2,40 +2,47 @@ package main
 
 import (
 	"flag"
-	"strings"
+	"log/slog"
+	"os"
 
 	"github.com/flashbots/go-utils/envflag"
-	"github.com/flashbots/go-utils/logutils"
-	"go.uber.org/zap"
 )
 
 var (
 	version = "dev" // is set during build process
 
 	logProd    = envflag.MustBool("log-prod", false, "log in production mode (json)")
-	logLevel   = envflag.String("log-level", "info", "log level (one of: \""+strings.Join(logutils.Levels, "\", \"")+"\")")
-	logService = envflag.String("log-service", "your-project", "\"service\" tag to logs")
+	logDebug   = envflag.MustBool("log-debug", false, "log debug messages")
+	logService = envflag.String("log-service", "", "'service' tag to logs")
 
-	log = logutils.MustGetZapLogger(
-		logutils.LogDevMode(!*logProd),
-		logutils.LogLevel(*logLevel),
-	).With(zap.String("version", version))
+	log *slog.Logger
 )
 
 func main() {
 	flag.Parse()
 
-	// Finish setting up logger, if needed
-	if *logService != "" {
-		log = log.With(zap.String("service", *logService))
+	logLevel := slog.LevelInfo
+	if *logDebug {
+		logLevel = slog.LevelDebug
 	}
-	defer logutils.FlushZap(log) // Makes sure that logger is flushed before the app exits
+	if *logProd {
+		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel}))
+	} else {
+		log = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel}))
+	}
+	log = log.With("version", version)
+	if *logService != "" {
+		log = log.With("service", *logService)
+	}
+	if *logProd {
+		log = log.With("env", "prod")
+	}
 
 	log.Info("Starting the project")
 
 	log.Debug("debug message")
 	log.Info("info message")
-	log.Warn("warn message (stacktrace added automatically when in log-dev mode)")
+	log.With("key", "value").Warn("warn message")
 	log.Error("error message (stacktrace added automatically)")
 	// log.Fatal("fatal message (stacktrace added automatically + causes the app to exit with non-zero status)")
 }

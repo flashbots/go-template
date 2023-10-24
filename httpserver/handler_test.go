@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
@@ -25,14 +25,14 @@ func Test_Handlers_Healthcheck_Drain_Undrain(t *testing.T) {
 	})
 
 	{ // Check health
-		req := httptest.NewRequest(http.MethodGet, "http://localhost"+listenAddr+"/readyz", nil)
+		req := httptest.NewRequest(http.MethodGet, "http://localhost"+listenAddr+"/readyz", nil) //nolint:goconst
 		w := httptest.NewRecorder()
 		s.handleReadinessCheck(w, req)
 		resp := w.Result()
 		defer resp.Body.Close()
 		_, err := io.ReadAll(resp.Body)
-		assert.NoError(t, err)
-		assert.Equal(t, http.StatusOK, resp.StatusCode, "Healthcheck must return `Ok` before draining")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode, "Healthcheck must return `Ok` before draining")
 	}
 
 	{ // Drain
@@ -44,9 +44,9 @@ func Test_Handlers_Healthcheck_Drain_Undrain(t *testing.T) {
 		resp := w.Result()
 		defer resp.Body.Close()
 		_, err := io.ReadAll(resp.Body)
-		assert.NoError(t, err)
-		assert.Equal(t, http.StatusOK, resp.StatusCode, "Must return `Ok` for calls to `/drain`")
-		assert.GreaterOrEqual(t, duration, latency, "Must wait long enough during draining")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode, "Must return `Ok` for calls to `/drain`")
+		require.GreaterOrEqual(t, duration, latency, "Must wait long enough during draining")
 	}
 
 	{ // Check health
@@ -56,8 +56,8 @@ func Test_Handlers_Healthcheck_Drain_Undrain(t *testing.T) {
 		resp := w.Result()
 		defer resp.Body.Close()
 		_, err := io.ReadAll(resp.Body)
-		assert.NoError(t, err)
-		assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode, "Healthcheck must return `Service Unavailable` after draining")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusServiceUnavailable, resp.StatusCode, "Healthcheck must return `Service Unavailable` after draining")
 	}
 
 	{ // Undrain
@@ -67,8 +67,8 @@ func Test_Handlers_Healthcheck_Drain_Undrain(t *testing.T) {
 		resp := w.Result()
 		defer resp.Body.Close()
 		_, err := io.ReadAll(resp.Body)
-		assert.NoError(t, err)
-		assert.Equal(t, http.StatusOK, resp.StatusCode, "Must return `Ok` for calls to `/undrain`")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode, "Must return `Ok` for calls to `/undrain`")
 		time.Sleep(latency)
 	}
 
@@ -79,7 +79,7 @@ func Test_Handlers_Healthcheck_Drain_Undrain(t *testing.T) {
 		resp := w.Result()
 		defer resp.Body.Close()
 		_, err := io.ReadAll(resp.Body)
-		assert.NoError(t, err)
-		assert.Equal(t, http.StatusOK, resp.StatusCode, "Healthcheck must return `Ok` after undraining")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode, "Healthcheck must return `Ok` after undraining")
 	}
 }
