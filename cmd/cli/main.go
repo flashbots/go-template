@@ -19,14 +19,16 @@ var (
 	log = logutils.MustGetZapLogger(
 		logutils.LogDevMode(!*logProd),
 		logutils.LogLevel(*logLevel),
-	).With(
-		zap.String("service", *logService),
-		zap.String("version", version),
-	)
+	).With(zap.String("version", version))
 )
 
 func main() {
 	flag.Parse()
+
+	// Finish setting up logger, if needed
+	if *logService != "" {
+		log = log.With(zap.String("service", *logService))
+	}
 	defer logutils.FlushZap(log) // Makes sure that logger is flushed before the app exits
 
 	log.Info("Starting the project")

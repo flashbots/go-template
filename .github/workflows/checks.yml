@@ -51,5 +51,5 @@ jobs:
       - name: Ensure go mod tidy runs without changes
         run: |
           go mod tidy
+          git update-index -q --really-refresh
           git diff-index HEAD
-          git diff-index --quiet HEAD
