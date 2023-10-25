@@ -2,39 +2,58 @@ package main
 
 import (
 	"flag"
-	"strings"
+	"log/slog"
+	"os"
 
 	"github.com/flashbots/go-utils/envflag"
-	"github.com/flashbots/go-utils/logutils"
-	"go.uber.org/zap"
 )
 
 var (
 	version = "dev" // is set during build process
 
-	logDev     = envflag.MustBool("log-dev", false, "log in development mode (plain text)")
-	logLevel   = envflag.String("log-level", "info", "log level (one of: \""+strings.Join(logutils.Levels, "\", \"")+"\")")
-	logService = envflag.String("log-service", "your-project", "\"service\" tag to logs")
+	logProd    = envflag.MustBool("log-prod", false, "log in production mode (json)")
+	logDebug   = envflag.MustBool("log-debug", false, "log debug messages")
+	logService = envflag.String("log-service", "", "'service' tag to logs")
 )
+
+type LoggingOpts struct {
+	Debug   bool
+	JSON    bool
+	Service string
+	Version string
+}
+
+func setupLogger(opts *LoggingOpts) (log *slog.Logger) {
+	logLevel := slog.LevelInfo
+	if opts.Debug {
+		logLevel = slog.LevelDebug
+	}
+
+	if opts.JSON {
+		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel}))
+	} else {
+		log = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel}))
+	}
+
+	if opts.Service != "" {
+		log = log.With("service", opts.Service)
+	}
+
+	if opts.Version != "" {
+		log = log.With("version", opts.Version)
+	}
+
+	return log
+}
 
 func main() {
 	flag.Parse()
+	log := setupLogger(&LoggingOpts{*logDebug, *logProd, *logService, version})
+	log.Info("Starting the project")
 
-	// Setup logging
-	l := logutils.MustGetZapLogger(
-		logutils.LogDevMode(*logDev),
-		logutils.LogLevel(*logLevel),
-	).With(
-		zap.String("service", *logService),
-		zap.String("version", version),
-	)
-	defer logutils.FlushZap(l) // Makes sure that logger is flushed before the app exits
-
-	l.Info("Starting the project")
-
-	l.Debug("debug message")
-	l.Info("info message")
-	l.Warn("warn message (stacktrace added automatically when in log-dev mode)")
-	l.Error("error message (stacktrace added automatically)")
-	// l.Fatal("fatal message (stacktrace added automatically + causes the app to exit with non-zero status)")
+	log.Debug("debug message")
+	log.Info("info message")
+	log.With("key", "value").Warn("warn message")
+	log.Error("error message (stacktrace added automatically)")
+	// log.Fatal("fatal message (stacktrace added automatically + causes the app to exit with non-zero status)")
 }
