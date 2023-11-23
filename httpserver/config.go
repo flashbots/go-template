@@ -16,6 +16,7 @@ type flags struct {
 	logDev       *bool
 	logLevel     *string
 	logService   *string
+	metricsAddr  *string
 }
 
 func defaults() flags {
@@ -25,6 +26,7 @@ func defaults() flags {
 		logDev:       envflag.MustBool("log-dev", false, "log in development mode (plain text)"),
 		logLevel:     envflag.String("log-level", "info", "log level (one of: \""+strings.Join(logutils.Levels, "\", \"")+"\")"),
 		logService:   envflag.String("log-service", "your-project", "\"service\" tag to logs"),
+		metricsAddr:  envflag.String("metrics-addr", "", "address to listen on for prometheus metrics"),
 	}
 	flag.Parse()
 	return fg
@@ -37,9 +39,10 @@ type Config struct {
 	GracefulShutdownDuration time.Duration
 	ListenAddr               string
 	Log                      *zap.Logger
+	MetricsAddr              string
 	ReadTimeout              time.Duration
-	WriteTimeout             time.Duration
 	Version                  string
+	WriteTimeout             time.Duration
 }
 
 func NewConfig(version string) *Config {
@@ -57,6 +60,7 @@ func NewConfig(version string) *Config {
 		GracefulShutdownDuration: 30 * time.Second,
 		ListenAddr:               *flags.listenAddr,
 		Log:                      log,
+		MetricsAddr:              *flags.metricsAddr,
 		ReadTimeout:              60 * time.Second,
 		Version:                  version,
 		WriteTimeout:             30 * time.Second,
