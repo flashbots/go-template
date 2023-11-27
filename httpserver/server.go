@@ -55,13 +55,15 @@ func (s *Server) httpLogger(next http.Handler) http.Handler {
 
 func (s *Server) RunInBackground() {
 	// metrics
-	if len(s.cfg.MetricsAddr) != 0 {
+	if s.cfg.MetricsAddr != "" {
 		s.log.Info("Starting metrics server",
 			zap.String("metricsAddress", s.cfg.MetricsAddr),
 		)
-		metrics.Init("github.com/flashbots/go-template", s.cfg.MetricsAddr)
 		go func() {
-			if err := metrics.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			if err := metrics.ListenAndServe(
+				"github.com/flashbots/go-template",
+				s.cfg.MetricsAddr,
+			); err != nil && !errors.Is(err, http.ErrServerClosed) {
 				s.log.Error("HTTP server failed", zap.Error(err))
 			}
 		}()
