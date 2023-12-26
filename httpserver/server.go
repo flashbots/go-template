@@ -1,4 +1,3 @@
-// Package httpserver implements the core HTTP server
 package httpserver
 
 import (
@@ -6,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/flashbots/go-template/metrics"
 	"github.com/flashbots/go-utils/httplogger"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -54,25 +54,58 @@ func (s *Server) httpLogger(next http.Handler) http.Handler {
 }
 
 func (s *Server) RunInBackground() {
-	s.log.Info("Starting HTTP server",
-		zap.String("listenAddress", s.cfg.ListenAddr),
-		zap.String("version", s.cfg.Version),
-	)
+	// metrics
+	if s.cfg.MetricsAddr != "" {
+		s.log.Info("Starting metrics server",
+			zap.String("metricsAddress", s.cfg.MetricsAddr),
+		)
+		go func() {
+			if err := metrics.ListenAndServe(
+				"github.com/flashbots/go-template",
+				s.cfg.MetricsAddr,
+			); err != nil && !errors.Is(err, http.ErrServerClosed) {
+				s.log.Error("HTTP server failed", zap.Error(err))
+			}
+		}()
+	}
 
-	go func() {
-		if err := s.srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			s.log.Error("HTTP server failed", zap.Error(err))
-		}
-	}()
+	// api
+	{
+		s.log.Info("Starting HTTP server",
+			zap.String("listenAddress", s.cfg.ListenAddr),
+			zap.String("version", s.cfg.Version),
+		)
+
+		go func() {
+			if err := s.srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+				s.log.Error("HTTP server failed", zap.Error(err))
+			}
+		}()
+	}
 }
 
 func (s *Server) Shutdown() {
-	ctx, cancel := context.WithTimeout(context.Background(), s.cfg.GracefulShutdownDuration)
-	defer cancel()
+	// api
+	{
+		ctx, cancel := context.WithTimeout(context.Background(), s.cfg.GracefulShutdownDuration)
+		defer cancel()
 
-	if err := s.srv.Shutdown(ctx); err != nil {
-		s.log.Error("Graceful HTTP server shutdown failed", zap.Error(err))
-	} else {
-		s.log.Info("HTTP server gracefully stopped")
+		if err := s.srv.Shutdown(ctx); err != nil {
+			s.log.Error("Graceful HTTP server shutdown failed", zap.Error(err))
+		} else {
+			s.log.Info("HTTP server gracefully stopped")
+		}
+	}
+
+	// metrics
+	if len(s.cfg.MetricsAddr) != 0 {
+		ctx, cancel := context.WithTimeout(context.Background(), s.cfg.GracefulShutdownDuration)
+		defer cancel()
+
+		if err := metrics.Shutdown(ctx); err != nil {
+			s.log.Error("Graceful metrics server shutdown failed", zap.Error(err))
+		} else {
+			s.log.Info("Metrics server gracefully stopped")
+		}
 	}
 }

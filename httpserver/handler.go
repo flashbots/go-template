@@ -4,10 +4,23 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/flashbots/go-template/metrics"
 	"github.com/flashbots/go-utils/logutils"
 )
 
 func (s *Server) handleAPI(w http.ResponseWriter, r *http.Request) {
+	m := metrics.Float64Histogram(
+		"request_duration_api",
+		"API request handling duration",
+		metrics.UomMicroseconds,
+		metrics.BucketsRequestDuration...,
+	)
+	defer func(start time.Time) {
+		m.Record(r.Context(), float64(time.Since(start).Microseconds()))
+	}(time.Now())
+
+	// do work
+
 	w.WriteHeader(http.StatusOK)
 }
 

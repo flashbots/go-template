@@ -25,7 +25,7 @@ func Test_Handlers_Healthcheck_Drain_Undrain(t *testing.T) {
 	})
 
 	{ // Check health
-		req := httptest.NewRequest(http.MethodGet, "http://localhost"+listenAddr+"/readyz", nil) //nolint:goconst
+		req := httptest.NewRequest(http.MethodGet, "http://localhost"+listenAddr+"/readyz", nil) //nolint:goconst,nolintlint
 		w := httptest.NewRecorder()
 		s.handleReadinessCheck(w, req)
 		resp := w.Result()
