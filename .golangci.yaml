@@ -4,6 +4,7 @@ linters:
     - cyclop
     - forbidigo
     - funlen
+    - gci
     - gochecknoglobals
     - gochecknoinits
     - gocritic
