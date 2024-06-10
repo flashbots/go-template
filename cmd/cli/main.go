@@ -31,5 +31,4 @@ func main() {
 	log.With("key", "value").Warn("warn message")
 
 	log.Error("error message", "err", errors.ErrUnsupported)
-	// log.Fatal("fatal message (causes the app to exit with non-zero status)")
 }

@@ -28,11 +28,12 @@ func Test_Handlers_Healthcheck_Drain_Undrain(t *testing.T) {
 	)
 
 	//nolint: exhaustruct
-	s := New(&Config{
+	s, err := New(&HTTPServerConfig{
 		DrainDuration: latency,
 		ListenAddr:    listenAddr,
 		Log:           getTestLogger(),
 	})
+	require.NoError(t, err)
 
 	{ // Check health
 		req := httptest.NewRequest(http.MethodGet, "http://localhost"+listenAddr+"/readyz", nil) //nolint:goconst,nolintlint
