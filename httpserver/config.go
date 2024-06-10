@@ -34,18 +34,18 @@ func defaults() flags {
 
 // -----------------------------------------------------------------------------
 
-type Config struct {
+type HTTPServerConfig struct {
+	ListenAddr               string
+	MetricsAddr              string
 	DrainDuration            time.Duration
 	GracefulShutdownDuration time.Duration
-	ListenAddr               string
-	Log                      *slog.Logger
-	MetricsAddr              string
 	ReadTimeout              time.Duration
-	Version                  string
 	WriteTimeout             time.Duration
+	Version                  string
+	Log                      *slog.Logger
 }
 
-func NewConfig(version string) *Config {
+func NewConfig(version string) *HTTPServerConfig {
 	flags := defaults()
 	log := common.SetupLogger(&common.LoggingOpts{
 		Debug:   *flags.logDebug,
@@ -54,15 +54,15 @@ func NewConfig(version string) *Config {
 		Version: version,
 	})
 
-	cfg := &Config{
+	cfg := &HTTPServerConfig{
+		ListenAddr:               *flags.listenAddr,
+		MetricsAddr:              *flags.metricsAddr,
 		DrainDuration:            time.Duration(*flags.drainSeconds) * time.Second,
 		GracefulShutdownDuration: 30 * time.Second,
-		ListenAddr:               *flags.listenAddr,
-		Log:                      log,
-		MetricsAddr:              *flags.metricsAddr,
 		ReadTimeout:              60 * time.Second,
-		Version:                  version,
 		WriteTimeout:             30 * time.Second,
+		Version:                  version,
+		Log:                      log,
 	}
 
 	if cfg.DrainDuration >= cfg.ReadTimeout {

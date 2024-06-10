@@ -16,7 +16,12 @@ func main() {
 	// Make sure to flush the logger before exiting the app
 
 	// Run server in background and wait for termination signal
-	srv := httpserver.New(cfg)
+	srv, err := httpserver.New(cfg)
+	if err != nil {
+		cfg.Log.Error("failed to create server", "err", err)
+		os.Exit(1)
+	}
+
 	exit := make(chan os.Signal, 1)
 	signal.Notify(exit, os.Interrupt, syscall.SIGTERM)
 	srv.RunInBackground()
