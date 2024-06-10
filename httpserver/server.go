@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/flashbots/go-template/common"
 	"github.com/flashbots/go-template/metrics"
@@ -13,6 +14,17 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/atomic"
 )
+
+type HTTPServerConfig struct {
+	ListenAddr  string
+	MetricsAddr string
+	Log         *slog.Logger
+
+	DrainDuration            time.Duration
+	GracefulShutdownDuration time.Duration
+	ReadTimeout              time.Duration
+	WriteTimeout             time.Duration
+}
 
 type Server struct {
 	cfg     *HTTPServerConfig
@@ -76,10 +88,7 @@ func (s *Server) RunInBackground() {
 
 	// api
 	go func() {
-		s.log.Info("Starting HTTP server",
-			slog.String("listenAddress", s.cfg.ListenAddr),
-			slog.String("version", s.cfg.Version),
-		)
+		s.log.Info("Starting HTTP server", "listenAddress", s.cfg.ListenAddr)
 		if err := s.srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			s.log.Error("HTTP server failed", "err", err)
 		}

@@ -2,33 +2,54 @@ package main
 
 import (
 	"errors"
-	"flag"
+	"log"
+	"os"
 
 	"github.com/flashbots/go-template/common"
-	"github.com/flashbots/go-utils/envflag"
+	"github.com/urfave/cli/v2" // imports as package "cli"
 )
 
-var (
-	version = "dev" // is set during build process
-
-	logProd    = envflag.MustBool("log-prod", false, "log in production mode (json)")
-	logDebug   = envflag.MustBool("log-debug", false, "log debug messages")
-	logService = envflag.String("log-service", "", "'service' tag to logs")
-)
+var flags []cli.Flag = []cli.Flag{
+	&cli.BoolFlag{
+		Name:  "log-json",
+		Value: false,
+		Usage: "log in JSON format",
+	},
+	&cli.BoolFlag{
+		Name:  "log-debug",
+		Value: false,
+		Usage: "log debug messages",
+	},
+}
 
 func main() {
-	flag.Parse()
+	app := &cli.App{
+		Name:   "httpserver",
+		Usage:  "Serve API, and metrics",
+		Flags:  flags,
+		Action: runCli,
+	}
+
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func runCli(cCtx *cli.Context) error {
+	logJSON := cCtx.Bool("log-json")
+	logDebug := cCtx.Bool("log-debug")
+
 	log := common.SetupLogger(&common.LoggingOpts{
-		Debug:   *logDebug,
-		JSON:    *logProd,
-		Service: *logService,
-		Version: version,
+		Debug:   logDebug,
+		JSON:    logJSON,
+		Version: common.Version,
 	})
+
 	log.Info("Starting the project")
 
 	log.Debug("debug message")
 	log.Info("info message")
 	log.With("key", "value").Warn("warn message")
-
 	log.Error("error message", "err", errors.ErrUnsupported)
+	return nil
 }
