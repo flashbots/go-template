@@ -40,7 +40,7 @@ lint:
 .PHONY: fmt
 fmt:
 	gofmt -s -w .
-	gofumpt -extra -w .
+	gofumpt -w -extra .
 	gci write .
 	go mod tidy
 

@@ -2,14 +2,24 @@ package httpserver
 
 import (
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/flashbots/go-template/common"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
 )
+
+func getTestLogger() *slog.Logger {
+	return common.SetupLogger(&common.LoggingOpts{
+		Debug:   true,
+		JSON:    false,
+		Service: "test",
+		Version: "test",
+	})
+}
 
 func Test_Handlers_Healthcheck_Drain_Undrain(t *testing.T) {
 	const (
@@ -21,7 +31,7 @@ func Test_Handlers_Healthcheck_Drain_Undrain(t *testing.T) {
 	s := New(&Config{
 		DrainDuration: latency,
 		ListenAddr:    listenAddr,
-		Log:           zap.Must(zap.NewDevelopment()),
+		Log:           getTestLogger(),
 	})
 
 	{ // Check health

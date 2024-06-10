@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/flashbots/go-template/metrics"
-	"github.com/flashbots/go-utils/logutils"
 )
 
 func (s *Server) handleAPI(w http.ResponseWriter, r *http.Request) {
@@ -41,8 +40,8 @@ func (s *Server) handleDrain(w http.ResponseWriter, r *http.Request) {
 	if wasReady := s.isReady.Swap(false); !wasReady {
 		return
 	}
-	l := logutils.ZapFromRequest(r)
-	l.Info("Server marked as not ready")
+	// l := logutils.ZapFromRequest(r)
+	s.log.Info("Server marked as not ready")
 	time.Sleep(s.cfg.DrainDuration) // Give LB enough time to detect us not ready
 }
 
@@ -50,6 +49,6 @@ func (s *Server) handleUndrain(w http.ResponseWriter, r *http.Request) {
 	if wasReady := s.isReady.Swap(true); wasReady {
 		return
 	}
-	l := logutils.ZapFromRequest(r)
-	l.Info("Server marked as ready")
+	// l := logutils.ZapFromRequest(r)
+	s.log.Info("Server marked as ready")
 }
