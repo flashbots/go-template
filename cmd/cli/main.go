@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 
 	"github.com/flashbots/go-template/common"
@@ -28,6 +29,7 @@ func main() {
 	log.Debug("debug message")
 	log.Info("info message")
 	log.With("key", "value").Warn("warn message")
-	log.Error("error message (stacktrace added automatically)")
-	// log.Fatal("fatal message (stacktrace added automatically + causes the app to exit with non-zero status)")
+
+	log.Error("error message", "err", errors.ErrUnsupported)
+	// log.Fatal("fatal message (causes the app to exit with non-zero status)")
 }
