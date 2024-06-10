@@ -3,31 +3,31 @@ package httpserver
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"github.com/flashbots/go-template/metrics"
-	"github.com/flashbots/go-utils/httplogger"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"go.uber.org/atomic"
-	"go.uber.org/zap"
 )
 
 type Server struct {
 	cfg     *Config
 	id      uuid.UUID
 	isReady atomic.Bool
-	log     *zap.Logger
+	log     *slog.Logger
 	srv     *http.Server
 }
 
 func New(cfg *Config) *Server {
 	id := uuid.Must(uuid.NewRandom())
+
 	s := &Server{
 		cfg:     cfg,
 		id:      id,
 		isReady: atomic.Bool{},
-		log:     cfg.Log.With(zap.String("serverID", id.String())),
+		log:     cfg.Log.With("serverID", id.String()),
 		srv:     nil,
 	}
 	s.isReady.Swap(true)
@@ -50,21 +50,20 @@ func New(cfg *Config) *Server {
 }
 
 func (s *Server) httpLogger(next http.Handler) http.Handler {
-	return httplogger.LoggingMiddlewareZap(s.log, next)
+	// return httplogger.LoggingMiddlewareZap(s.log, next)
+	return next // TODO: slog logging middleware
 }
 
 func (s *Server) RunInBackground() {
 	// metrics
 	if s.cfg.MetricsAddr != "" {
-		s.log.Info("Starting metrics server",
-			zap.String("metricsAddress", s.cfg.MetricsAddr),
-		)
+		s.log.With("metricsAddress", s.cfg.MetricsAddr).Info("Starting metrics server")
 		go func() {
 			if err := metrics.ListenAndServe(
 				"github.com/flashbots/go-template",
 				s.cfg.MetricsAddr,
 			); err != nil && !errors.Is(err, http.ErrServerClosed) {
-				s.log.Error("HTTP server failed", zap.Error(err))
+				s.log.Error("HTTP server failed", "err", err)
 			}
 		}()
 	}
@@ -72,13 +71,13 @@ func (s *Server) RunInBackground() {
 	// api
 	{
 		s.log.Info("Starting HTTP server",
-			zap.String("listenAddress", s.cfg.ListenAddr),
-			zap.String("version", s.cfg.Version),
+			slog.String("listenAddress", s.cfg.ListenAddr),
+			slog.String("version", s.cfg.Version),
 		)
 
 		go func() {
 			if err := s.srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-				s.log.Error("HTTP server failed", zap.Error(err))
+				s.log.Error("HTTP server failed", "err", err)
 			}
 		}()
 	}
@@ -91,7 +90,7 @@ func (s *Server) Shutdown() {
 		defer cancel()
 
 		if err := s.srv.Shutdown(ctx); err != nil {
-			s.log.Error("Graceful HTTP server shutdown failed", zap.Error(err))
+			s.log.Error("Graceful HTTP server shutdown failed", "err", err)
 		} else {
 			s.log.Info("HTTP server gracefully stopped")
 		}
@@ -103,7 +102,7 @@ func (s *Server) Shutdown() {
 		defer cancel()
 
 		if err := metrics.Shutdown(ctx); err != nil {
-			s.log.Error("Graceful metrics server shutdown failed", zap.Error(err))
+			s.log.Error("Graceful metrics server shutdown failed", "err", err)
 		} else {
 			s.log.Info("Metrics server gracefully stopped")
 		}

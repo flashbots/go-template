@@ -2,29 +2,29 @@ package httpserver
 
 import (
 	"flag"
-	"strings"
+	"log/slog"
 	"time"
 
+	"github.com/flashbots/go-template/common"
 	"github.com/flashbots/go-utils/envflag"
-	"github.com/flashbots/go-utils/logutils"
-	"go.uber.org/zap"
 )
 
 type flags struct {
+	metricsAddr  *string
 	drainSeconds *int
 	listenAddr   *string
-	logDev       *bool
-	logLevel     *string
-	logService   *string
-	metricsAddr  *string
+
+	logJSON    *bool
+	logDebug   *bool
+	logService *string
 }
 
 func defaults() flags {
 	fg := flags{
 		drainSeconds: envflag.MustInt("drain-seconds", 45, "seconds to wait in drain HTTP request"),
 		listenAddr:   envflag.String("listen-addr", "127.0.0.1:8080", "address to listen on"),
-		logDev:       envflag.MustBool("log-dev", false, "log in development mode (plain text)"),
-		logLevel:     envflag.String("log-level", "info", "log level (one of: \""+strings.Join(logutils.Levels, "\", \"")+"\")"),
+		logJSON:      envflag.MustBool("log-json", false, "log in JSON format"),
+		logDebug:     envflag.MustBool("log-debug", false, "log debug messages"),
 		logService:   envflag.String("log-service", "your-project", "\"service\" tag to logs"),
 		metricsAddr:  envflag.String("metrics-addr", "", "address to listen on for prometheus metrics"),
 	}
@@ -38,7 +38,7 @@ type Config struct {
 	DrainDuration            time.Duration
 	GracefulShutdownDuration time.Duration
 	ListenAddr               string
-	Log                      *zap.Logger
+	Log                      *slog.Logger
 	MetricsAddr              string
 	ReadTimeout              time.Duration
 	Version                  string
@@ -47,13 +47,12 @@ type Config struct {
 
 func NewConfig(version string) *Config {
 	flags := defaults()
-	log := logutils.MustGetZapLogger(
-		logutils.LogDevMode(*flags.logDev),
-		logutils.LogLevel(*flags.logLevel),
-	).With(
-		zap.String("service", *flags.logService),
-		zap.String("version", version),
-	)
+	log := common.SetupLogger(&common.LoggingOpts{
+		Debug:   *flags.logDebug,
+		JSON:    *flags.logJSON,
+		Service: *flags.logService,
+		Version: version,
+	})
 
 	cfg := &Config{
 		DrainDuration:            time.Duration(*flags.drainSeconds) * time.Second,
@@ -67,10 +66,7 @@ func NewConfig(version string) *Config {
 	}
 
 	if cfg.DrainDuration >= cfg.ReadTimeout {
-		log.Warn("Drain duration is not shorter that read timeout",
-			zap.Duration("drainDuration", cfg.DrainDuration),
-			zap.Duration("readTimeout", cfg.ReadTimeout),
-		)
+		log.With("drainDuration", cfg.DrainDuration).With("readTimeout", cfg.ReadTimeout).Warn("Drain duration is not shorter that read timeout")
 	}
 
 	return cfg

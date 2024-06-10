@@ -7,7 +7,7 @@ Toolbox for new Go projects!
 
 * [`Makefile`](https://github.com/flashbots/go-template/blob/main/Makefile) with `lint`, `test`, `build`, `fmt` and more
 * Linting with `gofmt`, `gofumpt`, `go vet`, `staticcheck` and `golangci-lint`
-* Logging setup using the Zap logger (with debug and json logging options)
+* Logging setup using the [slog logger](https://pkg.go.dev/golang.org/x/exp/slog) (with debug and json logging options)
 * [GitHub Workflows](.github/workflows/) for linting and testing, as well as releasing and publishing Docker images
 * Entry files for [CLI](/cmd/cli/main.go) and [HTTP server](/cmd/httpserver/main.go)
 * Webserver with graceful shutdown, implementing `livez`, `readyz` and draining API handlers
