@@ -11,7 +11,6 @@ import (
 	"github.com/flashbots/go-template/metrics"
 	"github.com/flashbots/go-utils/httplogger"
 	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
 	"go.uber.org/atomic"
 )
 
@@ -28,7 +27,6 @@ type HTTPServerConfig struct {
 
 type Server struct {
 	cfg     *HTTPServerConfig
-	id      uuid.UUID
 	isReady atomic.Bool
 	log     *slog.Logger
 
@@ -37,14 +35,16 @@ type Server struct {
 }
 
 func New(cfg *HTTPServerConfig) (srv *Server, err error) {
-	id := uuid.Must(uuid.NewRandom())
+	metrics, err := metrics.New(common.PackageName, cfg.MetricsAddr)
+	if err != nil {
+		return nil, err
+	}
 
 	srv = &Server{
 		cfg:     cfg,
-		id:      id,
-		isReady: atomic.Bool{},
-		log:     cfg.Log.With("serverID", id.String()),
+		log:     cfg.Log,
 		srv:     nil,
+		metrics: metrics,
 	}
 	srv.isReady.Swap(true)
 
@@ -60,11 +60,6 @@ func New(cfg *HTTPServerConfig) (srv *Server, err error) {
 		Handler:      mux,
 		ReadTimeout:  cfg.ReadTimeout,
 		WriteTimeout: cfg.WriteTimeout,
-	}
-
-	srv.metrics, err = metrics.New(common.PackageName, cfg.MetricsAddr)
-	if err != nil {
-		return nil, err
 	}
 
 	return srv, nil
