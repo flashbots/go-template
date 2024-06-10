@@ -15,6 +15,7 @@ Toolbox and building blocks for new Go projects, to get started quickly and righ
   * Prometheus metrics
   * Using https://pkg.go.dev/github.com/go-chi/chi/v5 for routing
   * [Urfave](https://cli.urfave.org/) for cli args
+* https://github.com/uber-go/nilaway
 * See also:
   * Public project setup: https://github.com/flashbots/flashbots-repository-template
   * Repository for common Go utilities: https://github.com/flashbots/go-utils

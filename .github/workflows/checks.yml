@@ -45,6 +45,9 @@ jobs:
       - name: Install golangci-lint
         run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.0
 
+      - name: Install NilAway
+        run: go install go.uber.org/nilaway/cmd/nilaway@latest
+
       - name: Lint
         run: make lint
 

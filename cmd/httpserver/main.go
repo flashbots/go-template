@@ -9,6 +9,7 @@ import (
 
 	"github.com/flashbots/go-template/common"
 	"github.com/flashbots/go-template/httpserver"
+	"github.com/google/uuid"
 	"github.com/urfave/cli/v2" // imports as package "cli"
 )
 
@@ -33,6 +34,11 @@ var flags []cli.Flag = []cli.Flag{
 		Value: false,
 		Usage: "log debug messages",
 	},
+	&cli.BoolFlag{
+		Name:  "log-uid",
+		Value: false,
+		Usage: "generate a uuid and add to all log messages",
+	},
 	&cli.StringFlag{
 		Name:  "log-service",
 		Value: "your-project",
@@ -55,6 +61,7 @@ func main() {
 			metricsAddr := cCtx.String("metrics-addr")
 			logJSON := cCtx.Bool("log-json")
 			logDebug := cCtx.Bool("log-debug")
+			logUID := cCtx.Bool("log-uid")
 			logService := cCtx.String("log-service")
 			drainDuration := time.Duration(cCtx.Int64("drain-seconds")) * time.Second
 
@@ -64,6 +71,11 @@ func main() {
 				Service: logService,
 				Version: common.Version,
 			})
+
+			if logUID {
+				id := uuid.Must(uuid.NewRandom())
+				log = log.With("uid", id.String())
+			}
 
 			cfg := &httpserver.HTTPServerConfig{
 				ListenAddr:  listenAddr,
