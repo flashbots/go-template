@@ -14,6 +14,7 @@ Toolbox and building blocks for new Go projects, to get started quickly and righ
   * Graceful shutdown, implementing `livez`, `readyz` and draining API handlers
   * Prometheus metrics
   * Using https://pkg.go.dev/github.com/go-chi/chi/v5 for routing
+  * [Urfave](https://cli.urfave.org/) for cli args
 * See also:
   * Public project setup: https://github.com/flashbots/flashbots-repository-template
   * Repository for common Go utilities: https://github.com/flashbots/go-utils

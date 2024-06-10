@@ -13,13 +13,13 @@ clean:
 
 .PHONY: build-cli
 build-cli:
-	@mkdir ./build || true
-	go build -trimpath -ldflags "-X main.version=${VERSION}" -v -o ./build/cli cmd/cli/main.go
+	@mkdir -p ./build
+	go build -trimpath -ldflags "-X github.com/flashbots/go-template/common.Version=${VERSION}" -v -o ./build/cli cmd/cli/main.go
 
 .PHONY: build-httpserver
 build-httpserver:
-	@mkdir ./build || true
-	go build -trimpath -ldflags "-X main.version=${VERSION}" -v -o ./build/httpserver cmd/httpserver/main.go
+	@mkdir -p ./build
+	go build -trimpath -ldflags "-X github.com/flashbots/go-template/common.Version=${VERSION}" -v -o ./build/httpserver cmd/httpserver/main.go
 
 .PHONY: test
 test:
@@ -44,12 +44,12 @@ fmt:
 	gofumpt -w -extra .
 	go mod tidy
 
-.PHONY: lt
-lt: lint test
-
 .PHONY: gofumpt
 gofumpt:
 	gofumpt -l -w -extra .
+
+.PHONY: lt
+lt: lint test
 
 .PHONY: cover
 cover:
