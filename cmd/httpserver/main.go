@@ -44,6 +44,11 @@ var flags []cli.Flag = []cli.Flag{
 		Value: "your-project",
 		Usage: "add 'service' tag to logs",
 	},
+	&cli.BoolFlag{
+		Name:  "pprof",
+		Value: false,
+		Usage: "enable pprof debug endpoint",
+	},
 	&cli.Int64Flag{
 		Name:  "drain-seconds",
 		Value: 45,
@@ -63,6 +68,7 @@ func main() {
 			logDebug := cCtx.Bool("log-debug")
 			logUID := cCtx.Bool("log-uid")
 			logService := cCtx.String("log-service")
+			enablePprof := cCtx.Bool("pprof")
 			drainDuration := time.Duration(cCtx.Int64("drain-seconds")) * time.Second
 
 			log := common.SetupLogger(&common.LoggingOpts{
@@ -81,6 +87,7 @@ func main() {
 				ListenAddr:  listenAddr,
 				MetricsAddr: metricsAddr,
 				Log:         log,
+				EnablePprof: enablePprof,
 
 				DrainDuration:            drainDuration,
 				GracefulShutdownDuration: 30 * time.Second,
