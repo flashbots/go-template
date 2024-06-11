@@ -11,12 +11,14 @@ import (
 	"github.com/flashbots/go-template/metrics"
 	"github.com/flashbots/go-utils/httplogger"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/atomic"
 )
 
 type HTTPServerConfig struct {
 	ListenAddr  string
 	MetricsAddr string
+	EnablePprof bool
 	Log         *slog.Logger
 
 	DrainDuration            time.Duration
@@ -54,6 +56,11 @@ func New(cfg *HTTPServerConfig) (srv *Server, err error) {
 	mux.With(srv.httpLogger).Get("/readyz", srv.handleReadinessCheck)
 	mux.With(srv.httpLogger).Get("/drain", srv.handleDrain)
 	mux.With(srv.httpLogger).Get("/undrain", srv.handleUndrain)
+
+	if cfg.EnablePprof {
+		srv.log.Info("pprof API enabled")
+		mux.Mount("/debug", middleware.Profiler())
+	}
 
 	srv.srv = &http.Server{
 		Addr:         cfg.ListenAddr,
