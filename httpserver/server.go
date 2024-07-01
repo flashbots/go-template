@@ -32,21 +32,21 @@ type Server struct {
 	isReady atomic.Bool
 	log     *slog.Logger
 
-	srv     *http.Server
-	metrics *metrics.MetricsServer
+	srv        *http.Server
+	metricsSrv *metrics.MetricsServer
 }
 
 func New(cfg *HTTPServerConfig) (srv *Server, err error) {
-	metrics, err := metrics.New(common.PackageName, cfg.MetricsAddr)
+	metricsSrv, err := metrics.New(common.PackageName, cfg.MetricsAddr)
 	if err != nil {
 		return nil, err
 	}
 
 	srv = &Server{
-		cfg:     cfg,
-		log:     cfg.Log,
-		srv:     nil,
-		metrics: metrics,
+		cfg:        cfg,
+		log:        cfg.Log,
+		srv:        nil,
+		metricsSrv: metricsSrv,
 	}
 	srv.isReady.Swap(true)
 
@@ -81,7 +81,7 @@ func (s *Server) RunInBackground() {
 	if s.cfg.MetricsAddr != "" {
 		go func() {
 			s.log.With("metricsAddress", s.cfg.MetricsAddr).Info("Starting metrics server")
-			err := s.metrics.ListenAndServe()
+			err := s.metricsSrv.ListenAndServe()
 			if err != nil && !errors.Is(err, http.ErrServerClosed) {
 				s.log.Error("HTTP server failed", "err", err)
 			}
@@ -112,7 +112,7 @@ func (s *Server) Shutdown() {
 		ctx, cancel := context.WithTimeout(context.Background(), s.cfg.GracefulShutdownDuration)
 		defer cancel()
 
-		if err := s.metrics.Shutdown(ctx); err != nil {
+		if err := s.metricsSrv.Shutdown(ctx); err != nil {
 			s.log.Error("Graceful metrics server shutdown failed", "err", err)
 		} else {
 			s.log.Info("Metrics server gracefully stopped")
