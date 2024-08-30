@@ -41,10 +41,10 @@ make build-httpserver
 **Install dev dependencies**
 
 ```bash
-go install mvdan.cc/gofumpt@latest
-go install honnef.co/go/tools/cmd/staticcheck@latest
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-go install github.com/daixiang0/gci@latest
+go install mvdan.cc/gofumpt@v0.4.0
+go install honnef.co/go/tools/cmd/staticcheck@v0.4.2
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.3
+go install go.uber.org/nilaway/cmd/nilaway@v0.0.0-20240821220108-c91e71c080b7
 ```
 
 **Lint, test, format**
