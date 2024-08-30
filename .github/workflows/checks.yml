@@ -43,10 +43,10 @@ jobs:
         run: go install honnef.co/go/tools/cmd/staticcheck@v0.4.2
 
       - name: Install golangci-lint
-        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.0
+        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.3
 
       - name: Install NilAway
-        run: go install go.uber.org/nilaway/cmd/nilaway@latest
+        run: go install go.uber.org/nilaway/cmd/nilaway@v0.0.0-20240821220108-c91e71c080b7
 
       - name: Lint
         run: make lint
