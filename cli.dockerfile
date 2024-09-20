@@ -1,7 +1,10 @@
 # syntax=docker/dockerfile:1
-FROM golang:1.21 as builder
+FROM golang:1.21 AS builder
 ARG VERSION
 WORKDIR /build
+ADD go.mod /build/
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 GOOS=linux \
+       go mod download
 ADD . /build/
 RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 GOOS=linux \
     go build \
