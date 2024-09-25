@@ -1,6 +1,6 @@
 module github.com/flashbots/go-template
 
-go 1.21
+go 1.22
 
 require (
 	github.com/flashbots/go-utils v0.6.1-0.20240610084140-4461ab748667

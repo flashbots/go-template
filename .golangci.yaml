@@ -18,7 +18,6 @@ linters:
     - nlreturn
     - noctx
     - nonamedreturns
-    - nosnakecase
     - paralleltest
     - revive
     - testpackage
@@ -26,10 +25,9 @@ linters:
     - varnamelen
     - wrapcheck
     - wsl
-    - deadcode
-    - varcheck
     - exhaustruct
     - depguard
+    - err113
 
     #
     # Disabled because of generics:
@@ -37,18 +35,13 @@ linters:
     - contextcheck
     - rowserrcheck
     - sqlclosecheck
-    - structcheck
     - wastedassign
 
     #
     # Disabled because deprecated:
     #
-    - exhaustivestruct
-    - golint
-    - ifshort
-    - interfacer
-    - maligned
-    - scopelint
+    - execinquery
+    - exportloopref
 
 linters-settings:
   #
