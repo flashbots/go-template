@@ -50,21 +50,9 @@ func New(cfg *HTTPServerConfig) (srv *Server, err error) {
 	}
 	srv.isReady.Swap(true)
 
-	mux := chi.NewRouter()
-	mux.With(srv.httpLogger).Get("/api", srv.handleAPI) // Never serve at `/` (root) path
-	mux.With(srv.httpLogger).Get("/livez", srv.handleLivenessCheck)
-	mux.With(srv.httpLogger).Get("/readyz", srv.handleReadinessCheck)
-	mux.With(srv.httpLogger).Get("/drain", srv.handleDrain)
-	mux.With(srv.httpLogger).Get("/undrain", srv.handleUndrain)
-
-	if cfg.EnablePprof {
-		srv.log.Info("pprof API enabled")
-		mux.Mount("/debug", middleware.Profiler())
-	}
-
 	srv.srv = &http.Server{
 		Addr:         cfg.ListenAddr,
-		Handler:      mux,
+		Handler:      srv.getRouter(),
 		ReadTimeout:  cfg.ReadTimeout,
 		WriteTimeout: cfg.WriteTimeout,
 	}
@@ -72,50 +60,65 @@ func New(cfg *HTTPServerConfig) (srv *Server, err error) {
 	return srv, nil
 }
 
-func (s *Server) httpLogger(next http.Handler) http.Handler {
-	return httplogger.LoggingMiddlewareSlog(s.log, next)
+func (srv *Server) getRouter() http.Handler {
+	mux := chi.NewRouter()
+	mux.With(srv.httpLogger).Get("/api", srv.handleAPI) // Never serve at `/` (root) path
+	mux.With(srv.httpLogger).Get("/livez", srv.handleLivenessCheck)
+	mux.With(srv.httpLogger).Get("/readyz", srv.handleReadinessCheck)
+	mux.With(srv.httpLogger).Get("/drain", srv.handleDrain)
+	mux.With(srv.httpLogger).Get("/undrain", srv.handleUndrain)
+
+	if srv.cfg.EnablePprof {
+		srv.log.Info("pprof API enabled")
+		mux.Mount("/debug", middleware.Profiler())
+	}
+	return mux
 }
 
-func (s *Server) RunInBackground() {
+func (srv *Server) httpLogger(next http.Handler) http.Handler {
+	return httplogger.LoggingMiddlewareSlog(srv.log, next)
+}
+
+func (srv *Server) RunInBackground() {
 	// metrics
-	if s.cfg.MetricsAddr != "" {
+	if srv.cfg.MetricsAddr != "" {
 		go func() {
-			s.log.With("metricsAddress", s.cfg.MetricsAddr).Info("Starting metrics server")
-			err := s.metricsSrv.ListenAndServe()
+			srv.log.With("metricsAddress", srv.cfg.MetricsAddr).Info("Starting metrics server")
+			err := srv.metricsSrv.ListenAndServe()
 			if err != nil && !errors.Is(err, http.ErrServerClosed) {
-				s.log.Error("HTTP server failed", "err", err)
+				srv.log.Error("HTTP server failed", "err", err)
 			}
 		}()
 	}
 
 	// api
 	go func() {
-		s.log.Info("Starting HTTP server", "listenAddress", s.cfg.ListenAddr)
-		if err := s.srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			s.log.Error("HTTP server failed", "err", err)
+		srv.log.Info("Starting HTTP server", "listenAddress", srv.cfg.ListenAddr)
+		if err := srv.srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			srv.log.Error("HTTP server failed", "err", err)
 		}
 	}()
 }
 
-func (s *Server) Shutdown() {
+func (srv *Server) Shutdown() {
 	// api
-	ctx, cancel := context.WithTimeout(context.Background(), s.cfg.GracefulShutdownDuration)
+	ctx, cancel := context.WithTimeout(context.Background(), srv.cfg.GracefulShutdownDuration)
 	defer cancel()
-	if err := s.srv.Shutdown(ctx); err != nil {
-		s.log.Error("Graceful HTTP server shutdown failed", "err", err)
+	if err := srv.srv.Shutdown(ctx); err != nil {
+		srv.log.Error("Graceful HTTP server shutdown failed", "err", err)
 	} else {
-		s.log.Info("HTTP server gracefully stopped")
+		srv.log.Info("HTTP server gracefully stopped")
 	}
 
 	// metrics
-	if len(s.cfg.MetricsAddr) != 0 {
-		ctx, cancel := context.WithTimeout(context.Background(), s.cfg.GracefulShutdownDuration)
+	if len(srv.cfg.MetricsAddr) != 0 {
+		ctx, cancel := context.WithTimeout(context.Background(), srv.cfg.GracefulShutdownDuration)
 		defer cancel()
 
-		if err := s.metricsSrv.Shutdown(ctx); err != nil {
-			s.log.Error("Graceful metrics server shutdown failed", "err", err)
+		if err := srv.metricsSrv.Shutdown(ctx); err != nil {
+			srv.log.Error("Graceful metrics server shutdown failed", "err", err)
 		} else {
-			s.log.Info("Metrics server gracefully stopped")
+			srv.log.Info("Metrics server gracefully stopped")
 		}
 	}
 }

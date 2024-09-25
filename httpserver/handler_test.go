@@ -94,3 +94,21 @@ func Test_Handlers_Healthcheck_Drain_Undrain(t *testing.T) {
 		require.Equal(t, http.StatusOK, resp.StatusCode, "Healthcheck must return `Ok` after undraining")
 	}
 }
+
+func Test_Handlers_Simple(t *testing.T) {
+	// This test doesn't need the server to actually start and serve. Instead it just tests the handlers.
+	//nolint: exhaustruct
+	srv, err := New(&HTTPServerConfig{
+		Log: getTestLogger(),
+	})
+	require.NoError(t, err)
+
+	{ // Check health
+		req, err := http.NewRequest(http.MethodGet, "/readyz", nil) //nolint:goconst,nolintlint
+		require.NoError(t, err)
+
+		rr := httptest.NewRecorder()
+		srv.getRouter().ServeHTTP(rr, req)
+		require.Equal(t, http.StatusOK, rr.Code)
+	}
+}
