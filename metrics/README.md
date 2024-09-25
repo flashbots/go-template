@@ -1,5 +1,12 @@
 # metrics
 
+This example metrics module uses the OpenTelemetry package.
+
+A solid alternative is [VictoriaMetrics](https://github.com/VictoriaMetrics/VictoriaMetrics), see an example
+implementation here: https://github.com/flashbots/mev-share-node/blob/main/metrics/metrics.go
+
+---
+
 Introduction:
 - https://opentelemetry.io/docs/languages/go/instrumentation/
 

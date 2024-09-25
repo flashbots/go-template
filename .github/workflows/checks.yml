@@ -14,7 +14,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: ^1.21
+          go-version: ^1.22
         id: go
 
       - name: Check out code into the Go module directory
@@ -30,7 +30,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: ^1.21
+          go-version: ^1.22
         id: go
 
       - name: Check out code into the Go module directory
@@ -40,7 +40,7 @@ jobs:
         run: go install mvdan.cc/gofumpt@v0.4.0
 
       - name: Install staticcheck
-        run: go install honnef.co/go/tools/cmd/staticcheck@v0.4.2
+        run: go install honnef.co/go/tools/cmd/staticcheck@2024.1.1
 
       - name: Install golangci-lint
         run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.3
