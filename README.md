@@ -42,7 +42,7 @@ make build-httpserver
 
 ```bash
 go install mvdan.cc/gofumpt@v0.4.0
-go install honnef.co/go/tools/cmd/staticcheck@v0.4.2
+go install honnef.co/go/tools/cmd/staticcheck@2024.1.1
 go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.3
 go install go.uber.org/nilaway/cmd/nilaway@v0.0.0-20240821220108-c91e71c080b7
 go install github.com/daixiang0/gci@v0.11.2
