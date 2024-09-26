@@ -16,6 +16,7 @@ Toolbox and building blocks for new Go projects, to get started quickly and righ
   * Using https://pkg.go.dev/github.com/go-chi/chi/v5 for routing
   * [Urfave](https://cli.urfave.org/) for cli args
 * https://github.com/uber-go/nilaway
+* Postgres database with migrations
 * See also:
   * Public project setup: https://github.com/flashbots/flashbots-repository-template
   * Repository for common Go utilities: https://github.com/flashbots/go-utils
@@ -54,4 +55,20 @@ go install github.com/daixiang0/gci@v0.11.2
 make lint
 make test
 make fmt
+```
+
+
+**Database tests (using a live Postgres instance)**
+
+Database tests will be run if the `RUN_DB_TESTS` environment variable is set to `1`.
+
+```bash
+# start the database
+docker run -d --name postgres-test -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=postgres postgres
+
+# run the tests
+RUN_DB_TESTS=1 make test
+
+# stop the database
+docker rm -f postgres-test
 ```
