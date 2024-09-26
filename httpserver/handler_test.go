@@ -12,6 +12,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var testServerConfig = &HTTPServerConfig{
+	Log: getTestLogger(),
+}
+
 func getTestLogger() *slog.Logger {
 	return common.SetupLogger(&common.LoggingOpts{
 		Debug:   true,
@@ -28,7 +32,7 @@ func Test_Handlers_Healthcheck_Drain_Undrain(t *testing.T) {
 	)
 
 	//nolint: exhaustruct
-	s, err := New(&HTTPServerConfig{
+	s, err := NewHTTPServer(&HTTPServerConfig{
 		DrainDuration: latency,
 		ListenAddr:    listenAddr,
 		Log:           getTestLogger(),
@@ -98,9 +102,7 @@ func Test_Handlers_Healthcheck_Drain_Undrain(t *testing.T) {
 func Test_Handlers_Simple(t *testing.T) {
 	// This test doesn't need the server to actually start and serve. Instead it just tests the handlers.
 	//nolint: exhaustruct
-	srv, err := New(&HTTPServerConfig{
-		Log: getTestLogger(),
-	})
+	srv, err := NewHTTPServer(testServerConfig)
 	require.NoError(t, err)
 
 	{ // Check health

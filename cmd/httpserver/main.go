@@ -95,7 +95,7 @@ func main() {
 				WriteTimeout:             30 * time.Second,
 			}
 
-			srv, err := httpserver.New(cfg)
+			srv, err := httpserver.NewHTTPServer(cfg)
 			if err != nil {
 				cfg.Log.Error("failed to create server", "err", err)
 				return err

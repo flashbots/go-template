@@ -36,7 +36,7 @@ type Server struct {
 	metricsSrv *metrics.MetricsServer
 }
 
-func New(cfg *HTTPServerConfig) (srv *Server, err error) {
+func NewHTTPServer(cfg *HTTPServerConfig) (srv *Server, err error) {
 	metricsSrv, err := metrics.New(common.PackageName, cfg.MetricsAddr)
 	if err != nil {
 		return nil, err
