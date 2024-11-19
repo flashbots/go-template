@@ -32,13 +32,15 @@ build-httpserver: ## Build the HTTP server
 
 ##@ Test & Development
 
-.PHONY: test
-test: ## Run tests
-	go test ./...
+.PHONY: lt
+lt: lint test ## Run linters and tests (always use this)
 
-.PHONY: test-race
-test-race: ## Run tests with race detector
-	go test -race ./...
+.PHONY: fmt
+fmt: ## Format the code (use this often)
+	gofmt -s -w .
+	gci write .
+	gofumpt -w -extra .
+	go mod tidy
 
 .PHONY: lint
 lint: ## Run linters
@@ -49,19 +51,17 @@ lint: ## Run linters
 	golangci-lint run
 	# nilaway ./...
 
-.PHONY: fmt
-fmt: ## Format the code
-	gofmt -s -w .
-	gci write .
-	gofumpt -w -extra .
-	go mod tidy
+.PHONY: test
+test: ## Run tests
+	go test ./...
+
+.PHONY: test-race
+test-race: ## Run tests with race detector
+	go test -race ./...
 
 .PHONY: gofumpt
 gofumpt: ## Run gofumpt
 	gofumpt -l -w -extra .
-
-.PHONY: lt
-lt: lint test ## Run linters and tests
 
 .PHONY: cover
 cover: ## Run tests with coverage
