@@ -30,6 +30,10 @@ build-httpserver: ## Build the HTTP server
 	@mkdir -p ./build
 	go build -trimpath -ldflags "-X github.com/flashbots/go-template/common.Version=${VERSION}" -v -o ./build/httpserver cmd/httpserver/main.go
 
+.PHONY: build
+build: build-cli build-httpserver ## Build all binaries
+	@echo "Binaries built in ./build/"
+
 ##@ Test & Development
 
 .PHONY: test

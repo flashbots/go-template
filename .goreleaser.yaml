@@ -1,0 +1,39 @@
+version: 2
+
+# https://goreleaser.com/customization/builds/go/
+builds:
+  - id: go-template
+    main: ./cmd/cli/
+    binary: cli
+
+    env:
+      # Force build to be all Go.
+      - CGO_ENABLED=0
+    flags:
+      # Remove all file system paths from the executable.
+      - -trimpath
+    ldflags:
+      # Sets the value of the symbol.
+      - -X github.com/flashbots/go-template/common.Version={{.Version}}
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+      - riscv64
+    ignore:
+      - goos: darwin
+        goarch: riscv64
+
+# https://goreleaser.com/customization/release/
+release:
+  draft: true
+  extra_files:
+    - glob: ./dist/*
+  header: |
+    # 🚀 Features
+    # 🎄 Enhancements
+    # 🐞 Notable bug fixes
+    # 🔖 Version updates
+    # 🎠 Community
