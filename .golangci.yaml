@@ -10,7 +10,6 @@ linters:
     - gocritic
     - godot
     - godox
-    - gomnd
     - mnd
     - lll
     - nestif
@@ -40,8 +39,7 @@ linters:
     #
     # Disabled because deprecated:
     #
-    - execinquery
-    - exportloopref
+    - tenv
 
 linters-settings:
   #
