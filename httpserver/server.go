@@ -3,15 +3,14 @@ package httpserver
 import (
 	"context"
 	"errors"
-	"log/slog"
 	"net/http"
 	"time"
 
-	"github.com/flashbots/go-template/common"
+	victoriaMetrics "github.com/VictoriaMetrics/metrics"
 	"github.com/flashbots/go-template/metrics"
-	"github.com/flashbots/go-utils/httplogger"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httplog/v2"
 	"go.uber.org/atomic"
 )
 
@@ -19,7 +18,7 @@ type HTTPServerConfig struct {
 	ListenAddr  string
 	MetricsAddr string
 	EnablePprof bool
-	Log         *slog.Logger
+	Log         *httplog.Logger
 
 	DrainDuration            time.Duration
 	GracefulShutdownDuration time.Duration
@@ -30,25 +29,27 @@ type HTTPServerConfig struct {
 type Server struct {
 	cfg     *HTTPServerConfig
 	isReady atomic.Bool
-	log     *slog.Logger
+	log     *httplog.Logger
 
 	srv        *http.Server
-	metricsSrv *metrics.MetricsServer
+	metricsSrv *http.Server
 }
 
 func New(cfg *HTTPServerConfig) (srv *Server, err error) {
-	metricsSrv, err := metrics.New(common.PackageName, cfg.MetricsAddr)
-	if err != nil {
-		return nil, err
+	srv = &Server{
+		cfg: cfg,
+		log: cfg.Log,
+		srv: nil,
 	}
 
-	srv = &Server{
-		cfg:        cfg,
-		log:        cfg.Log,
-		srv:        nil,
-		metricsSrv: metricsSrv,
+	if cfg.MetricsAddr != "" {
+		srv.metricsSrv = &http.Server{
+			Addr:         cfg.MetricsAddr,
+			Handler:      srv.getMetricsRouter(),
+			ReadTimeout:  cfg.ReadTimeout,
+			WriteTimeout: cfg.WriteTimeout,
+		}
 	}
-	srv.isReady.Swap(true)
 
 	srv.srv = &http.Server{
 		Addr:         cfg.ListenAddr,
@@ -57,16 +58,23 @@ func New(cfg *HTTPServerConfig) (srv *Server, err error) {
 		WriteTimeout: cfg.WriteTimeout,
 	}
 
+	srv.isReady.Swap(true)
+
 	return srv, nil
 }
 
 func (srv *Server) getRouter() http.Handler {
 	mux := chi.NewRouter()
-	mux.With(srv.httpLogger).Get("/api", srv.handleAPI) // Never serve at `/` (root) path
-	mux.With(srv.httpLogger).Get("/livez", srv.handleLivenessCheck)
-	mux.With(srv.httpLogger).Get("/readyz", srv.handleReadinessCheck)
-	mux.With(srv.httpLogger).Get("/drain", srv.handleDrain)
-	mux.With(srv.httpLogger).Get("/undrain", srv.handleUndrain)
+
+	mux.Use(httplog.RequestLogger(srv.log))
+	mux.Use(middleware.Recoverer)
+	mux.Use(metrics.Middleware)
+
+	mux.Get("/api", srv.handleAPI) // Never serve at `/` (root) path
+	mux.Get("/livez", srv.handleLivenessCheck)
+	mux.Get("/readyz", srv.handleReadinessCheck)
+	mux.Get("/drain", srv.handleDrain)
+	mux.Get("/undrain", srv.handleUndrain)
 
 	if srv.cfg.EnablePprof {
 		srv.log.Info("pprof API enabled")
@@ -75,8 +83,12 @@ func (srv *Server) getRouter() http.Handler {
 	return mux
 }
 
-func (srv *Server) httpLogger(next http.Handler) http.Handler {
-	return httplogger.LoggingMiddlewareSlog(srv.log, next)
+func (srv *Server) getMetricsRouter() http.Handler {
+	mux := chi.NewRouter()
+	mux.Get("/metrics", func(w http.ResponseWriter, r *http.Request) {
+		victoriaMetrics.WritePrometheus(w, true)
+	})
+	return mux
 }
 
 func (srv *Server) RunInBackground() {

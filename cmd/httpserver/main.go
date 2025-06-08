@@ -71,17 +71,18 @@ func main() {
 			enablePprof := cCtx.Bool("pprof")
 			drainDuration := time.Duration(cCtx.Int64("drain-seconds")) * time.Second
 
+			uid := ""
+			if logUID {
+				uid = uuid.Must(uuid.NewRandom()).String()
+			}
+
 			log := common.SetupLogger(&common.LoggingOpts{
 				Debug:   logDebug,
 				JSON:    logJSON,
 				Service: logService,
 				Version: common.Version,
+				UID:     uid,
 			})
-
-			if logUID {
-				id := uuid.Must(uuid.NewRandom())
-				log = log.With("uid", id.String())
-			}
 
 			cfg := &httpserver.HTTPServerConfig{
 				ListenAddr:  listenAddr,

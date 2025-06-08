@@ -2,17 +2,17 @@ package httpserver
 
 import (
 	"io"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
 	"github.com/flashbots/go-template/common"
+	"github.com/go-chi/httplog/v2"
 	"github.com/stretchr/testify/require"
 )
 
-func getTestLogger() *slog.Logger {
+func getTestLogger() *httplog.Logger {
 	return common.SetupLogger(&common.LoggingOpts{
 		Debug:   true,
 		JSON:    false,
