@@ -23,6 +23,8 @@ Toolbox and building blocks for new Go projects, to get started quickly and righ
 
 Pick and choose whatever is useful to you! Don't feel the need to use everything, or even to follow this structure.
 
+For advanced Golang knowledge, tips & tricks, see also https://goperf.dev
+
 ---
 
 ## Getting started

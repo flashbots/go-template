@@ -3,35 +3,47 @@ package common
 
 import (
 	"log/slog"
-	"os"
+
+	"github.com/go-chi/httplog/v2"
 )
 
 type LoggingOpts struct {
-	Debug   bool
-	JSON    bool
-	Service string
-	Version string
+	Service        string
+	JSON           bool
+	Debug          bool
+	Concise        bool
+	RequestHeaders bool
+	Version        string
+	UID            string
+	Tags           map[string]string
 }
 
-func SetupLogger(opts *LoggingOpts) (log *slog.Logger) {
+func SetupLogger(opts *LoggingOpts) (log *httplog.Logger) {
 	logLevel := slog.LevelInfo
 	if opts.Debug {
 		logLevel = slog.LevelDebug
 	}
 
-	if opts.JSON {
-		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel}))
-	} else {
-		log = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel}))
+	// If version is provided, add it to the tags.
+	if opts.Version != "" || opts.UID != "" {
+		if opts.Tags == nil {
+			opts.Tags = make(map[string]string)
+		}
+		if opts.Version != "" {
+			opts.Tags["version"] = opts.Version
+		}
+		if opts.UID != "" {
+			opts.Tags["uid"] = opts.UID
+		}
 	}
 
-	if opts.Service != "" {
-		log = log.With("service", opts.Service)
-	}
+	logger := httplog.NewLogger(opts.Service, httplog.Options{
+		JSON:           opts.JSON,
+		LogLevel:       logLevel,
+		Concise:        opts.Concise,
+		RequestHeaders: opts.RequestHeaders,
+		Tags:           opts.Tags,
+	})
 
-	if opts.Version != "" {
-		log = log.With("version", opts.Version)
-	}
-
-	return log
+	return logger
 }
