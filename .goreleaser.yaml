@@ -1,39 +1,213 @@
+# GoReleaser configuration for reproducible Debian packaging
 version: 2
 
-# https://goreleaser.com/customization/builds/go/
-builds:
-  - id: go-template
-    main: ./cmd/cli/
-    binary: cli
+# Global environment for reproducible builds
+env:
+  - CGO_ENABLED=0
+  - SOURCE_DATE_EPOCH={{ .CommitTimestamp }}
 
-    env:
-      # Force build to be all Go.
-      - CGO_ENABLED=0
-    flags:
-      # Remove all file system paths from the executable.
-      - -trimpath
-    ldflags:
-      # Sets the value of the symbol.
-      - -X github.com/flashbots/go-template/common.Version={{.Version}}
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+builds:
+  - id: httpserver
+    binary: go-template-httpserver
+    main: ./cmd/httpserver/main.go
     goos:
       - linux
-      - darwin
     goarch:
       - amd64
       - arm64
-      - riscv64
-    ignore:
-      - goos: darwin
-        goarch: riscv64
+    # Reproducible build flags
+    flags:
+      - -trimpath
+      - -buildvcs=false
+    ldflags:
+      - -s -w
+      - -X github.com/flashbots/go-template/common.Version={{.Version}}
+      # Ensure reproducible builds by removing build path and timestamp info
+      - -buildid=""
+    env:
+      - CGO_ENABLED=0
+      - GOFLAGS=-mod=readonly
+      - SOURCE_DATE_EPOCH={{ .CommitTimestamp }}
 
-# https://goreleaser.com/customization/release/
+  - id: cli
+    binary: go-template-cli
+    main: ./cmd/cli/main.go
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -trimpath
+      - -buildvcs=false
+    ldflags:
+      - -s -w
+      - -X github.com/flashbots/go-template/common.Version={{.Version}}
+      - -buildid=""
+    env:
+      - CGO_ENABLED=0
+      - GOFLAGS=-mod=readonly
+      - SOURCE_DATE_EPOCH={{ .CommitTimestamp }}
+
+archives:
+  - id: default
+    formats: 
+      - tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- .Arch }}
+      {{- if not (eq .Amd64 "v1") }}{{ .Amd64 }}{{ end }}
+    # Set consistent file modification times for reproducibility
+    wrap_in_directory: true
+
+nfpms:
+  - id: httpserver
+    package_name: go-template-httpserver
+    file_name_template: >-
+      {{ .PackageName }}_{{ .Version }}_{{ .Os }}_
+      {{- .Arch }}
+      {{- if not (eq .Amd64 "v1") }}{{ .Amd64 }}{{ end }}
+    
+    ids:
+      - httpserver
+    
+    vendor: Flashbots
+    homepage: https://github.com/flashbots/go-template
+    maintainer: Flashbots <info@flashbots.net>
+    description: |
+      Go Template HTTP Server
+      A template HTTP server for Go projects with metrics, health checks, and graceful shutdown.
+    license: MIT
+    
+    formats:
+      - deb
+      - rpm
+    
+    # For reproducible builds, set consistent metadata
+    version_metadata: ""
+    
+    # Ensure consistent file permissions
+    umask: 0o022
+    
+    bindir: /usr/bin
+    
+    # Dependencies for the HTTP server
+    dependencies:
+      - adduser
+      - lsb-base (>= 3.0-6)
+    
+    contents:
+      # GoReleaser automatically includes binaries from the referenced build
+      
+      # Systemd service file
+      - src: ./packaging/go-template-httpserver.service
+        dst: /lib/systemd/system/go-template-httpserver.service
+        type: config
+        file_info:
+          mode: 0644
+          mtime: "{{ .CommitDate }}"
+      
+      # Default configuration
+      - src: ./packaging/go-template-httpserver.default
+        dst: /etc/default/go-template-httpserver
+        type: config
+        file_info:
+          mode: 0644
+          mtime: "{{ .CommitDate }}"
+      
+      # Create log directory with correct ownership
+      - dst: /var/log/go-template
+        type: dir
+        file_info:
+          mode: 0755
+          owner: go-template
+          group: go-template
+    
+    scripts:
+      postinstall: ./packaging/postinstall.sh
+      preremove: ./packaging/preremove.sh
+      postremove: ./packaging/postremove.sh
+    
+    # Set consistent modification time for reproducibility
+    mtime: "{{ .CommitDate }}"
+
+  - id: cli
+    package_name: go-template-cli
+    file_name_template: >-
+      {{ .PackageName }}_{{ .Version }}_{{ .Os }}_
+      {{- .Arch }}
+      {{- if not (eq .Amd64 "v1") }}{{ .Amd64 }}{{ end }}
+    
+    ids:
+      - cli
+    
+    vendor: Flashbots
+    homepage: https://github.com/flashbots/go-template
+    maintainer: Flashbots <info@flashbots.net>
+    description: |
+      Go Template CLI
+      A command-line interface for the Go template project.
+    license: MIT
+    
+    formats:
+      - deb
+      - rpm
+    
+    version_metadata: ""
+    umask: 0o022
+    bindir: /usr/bin
+    
+    # Set consistent modification time for reproducibility
+    mtime: "{{ .CommitDate }}"
+
+# Reproducible source archives
+source:
+  enabled: true
+  name_template: "{{ .ProjectName }}-{{ .Version }}"
+  format: tar.gz
+
+# Checksums for package verification
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+# Reproducible changelog
+changelog:
+  use: github
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "merge conflict"
+      - Merge pull request
+      - Merge remote-tracking branch
+      - Merge branch
+  groups:
+    - title: Features
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 0
+    - title: "Bug fixes"
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 1
+    - title: Others
+      order: 999
+
+# Release configuration
 release:
-  draft: true
-  extra_files:
-    - glob: ./dist/*
-  header: |
-    # 🚀 Features
-    # 🎄 Enhancements
-    # 🐞 Notable bug fixes
-    # 🔖 Version updates
-    # 🎠 Community
+  # GoReleaser will auto-detect from git remote origin
+  mode: append
+  
+  # Create release draft
+  draft: false
+  
+  # Mark as prerelease if version contains prerelease identifiers
+  prerelease: auto
+  

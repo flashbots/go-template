@@ -64,10 +64,10 @@ jobs:
         run: go install mvdan.cc/gofumpt@v0.4.0
 
       - name: Install staticcheck
-        run: go install honnef.co/go/tools/cmd/staticcheck@2025.1.1
+        run: go install honnef.co/go/tools/cmd/staticcheck@latest
 
       - name: Install golangci-lint
-        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8
+        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
       # - name: Install NilAway
       #   run: go install go.uber.org/nilaway/cmd/nilaway@v0.0.0-20240821220108-c91e71c080b7

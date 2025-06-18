@@ -72,3 +72,27 @@ RUN_DB_TESTS=1 make test
 # stop the database
 docker rm -f postgres-test
 ```
+
+## Reproducible Debian Packaging
+
+This project supports reproducible Debian package builds using GoReleaser.
+
+**Prerequisites:**
+- Go 1.24+
+- GoReleaser
+
+**Build packages:**
+
+```bash
+# Create local packages
+make package-local
+
+# Test reproducibility
+make package-test-reproducible
+```
+
+**Package contents:**
+- `go-template-httpserver`: HTTP server with systemd service
+- `go-template-cli`: Command-line interface
+
+The packages include systemd integration and automatic user/directory setup.
