@@ -206,7 +206,7 @@ release:
   mode: append
   
   # Create release draft
-  draft: false
+  draft: true
   
   # Mark as prerelease if version contains prerelease identifiers
   prerelease: auto

@@ -4,13 +4,6 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:
-    inputs:
-      snapshot:
-        description: 'Create snapshot release'
-        required: false
-        default: false
-        type: boolean
 
 permissions:
   contents: write
