@@ -17,7 +17,7 @@ v: ## Show the version
 ##@ Build
 
 .PHONY: clean
-clean: ## Clean the build directory
+clean: package-clean ## Clean the build directory
 	rm -rf build/
 
 .PHONY: build-cli
@@ -96,3 +96,80 @@ docker-httpserver: ## Build the HTTP server Docker image
 		--file httpserver.dockerfile \
 		--tag your-project \
 	.
+
+##@ Packaging
+
+.PHONY: package-build
+package-build: ## Build packages (without releasing)
+	@echo "Building packages..."
+	@goreleaser build --snapshot --clean
+	@echo "✅ Packages built in dist/"
+
+.PHONY: package-local
+package-local: ## Build packages locally for testing
+	@echo "Creating local release packages..."
+	@goreleaser release --snapshot --clean
+	@echo "✅ Release packages created in dist/"
+	@echo "📦 Created packages:"
+	@find dist/ -name "*.deb" -o -name "*.rpm" -o -name "*.tar.gz" | sort
+
+.PHONY: package-test-reproducible
+package-test-reproducible: ## Test reproducible builds
+	@chmod +x scripts/test-reproducible.sh
+	@./scripts/test-reproducible.sh
+
+.PHONY: package-install-local
+package-install-local: package-local ## Install locally built package
+	@echo "Installing local package..."
+	@DEB_FILE=$$(find ./dist -name "*httpserver*.deb" | head -1); \
+	if [ -n "$$DEB_FILE" ]; then \
+		echo "Installing $$DEB_FILE"; \
+		sudo dpkg -i "$$DEB_FILE" || sudo apt-get -f install -y; \
+		echo "✅ Package installed successfully"; \
+		echo "To start service: sudo systemctl start go-template-httpserver"; \
+		echo "To check status: sudo systemctl status go-template-httpserver"; \
+	else \
+		echo "❌ No .deb file found in ./dist/"; \
+		exit 1; \
+	fi
+
+.PHONY: package-uninstall
+package-uninstall: ## Uninstall locally installed package
+	@echo "Uninstalling go-template packages..."
+	@if dpkg -l | grep -q go-template-httpserver; then \
+		sudo systemctl stop go-template-httpserver || true; \
+		sudo dpkg -r go-template-httpserver; \
+		echo "✅ HTTP server package removed"; \
+	fi
+	@if dpkg -l | grep -q go-template-cli; then \
+		sudo dpkg -r go-template-cli; \
+		echo "✅ CLI package removed"; \
+	fi
+
+.PHONY: package-info
+package-info: ## Show information about built packages
+	@echo "📦 Package Information"
+	@echo "====================="
+	@for pkg in $$(find dist/ -name "*.deb" 2>/dev/null); do \
+		echo "Package: $$pkg"; \
+		echo "Size: $$(du -h "$$pkg" | cut -f1)"; \
+		echo "Contents:"; \
+		dpkg-deb --contents "$$pkg" | head -10; \
+		echo "---"; \
+	done
+
+.PHONY: package-clean
+package-clean: ## Clean packaging artifacts
+	@echo "Cleaning packaging artifacts..."
+	@rm -rf dist/
+	@echo "✅ Packaging artifacts cleaned"
+
+.PHONY: package-release
+package-release: ## Create a release (requires git tag)
+	@if [ "$$(git describe --exact-match --tags HEAD 2>/dev/null)" = "" ]; then \
+		echo "❌ No git tag found. Create a tag first: git tag v1.0.0"; \
+		exit 1; \
+	fi
+	@echo "🚀 Creating release for tag: $$(git describe --tags)"
+	@goreleaser release --clean
+	@echo "✅ Release created successfully"

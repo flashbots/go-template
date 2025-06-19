@@ -1,0 +1,30 @@
+[Unit]
+Description=Go Template HTTP Server
+Documentation=https://github.com/flashbots/go-template
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=nobody
+Group=nogroup
+ExecStart=/usr/bin/go-template-httpserver
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+RestartSec=5s
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/go-template
+
+EnvironmentFile=-/etc/default/go-template-httpserver
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=go-template-httpserver
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,8 @@
+# Default configuration for go-template-httpserver
+LISTEN_ADDR="0.0.0.0:8080"
+METRICS_ADDR="0.0.0.0:8090"
+LOG_JSON=false
+LOG_DEBUG=false
+LOG_SERVICE="go-template-httpserver"
+PPROF=false
+DRAIN_SECONDS=45
