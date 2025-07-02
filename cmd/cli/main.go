@@ -53,5 +53,6 @@ func runCli(cCtx *cli.Context) error {
 	log.Info("info message")
 	log.With("key", "value").Warn("warn message")
 	log.Error("error message", "err", errors.ErrUnsupported)
+
 	return nil
 }

@@ -1,6 +1,8 @@
 package common
 
-import "os"
+import (
+	"os"
+)
 
 func GetEnv(key, defaultValue string) string {
 	if value, ok := os.LookupEnv(key); ok {
