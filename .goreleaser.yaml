@@ -29,8 +29,6 @@ builds:
 # https://goreleaser.com/customization/release/
 release:
   draft: true
-  extra_files:
-    - glob: ./dist/*
   header: |
     # 🚀 Features
     # 🎄 Enhancements
