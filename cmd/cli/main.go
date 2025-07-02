@@ -24,10 +24,12 @@ var flags []cli.Flag = []cli.Flag{
 
 func main() {
 	app := &cli.App{
-		Name:   "httpserver",
-		Usage:  "Serve API, and metrics",
-		Flags:  flags,
-		Action: runCli,
+		Name:        "cli",
+		Usage:       "command-line interface for your project",
+		Version:     common.Version,
+		HideVersion: false,
+		Flags:       flags,
+		Action:      runCli,
 	}
 
 	if err := app.Run(os.Args); err != nil {

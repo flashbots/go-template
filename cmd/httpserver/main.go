@@ -58,9 +58,11 @@ var flags []cli.Flag = []cli.Flag{
 
 func main() {
 	app := &cli.App{
-		Name:  "httpserver",
-		Usage: "Serve API, and metrics",
-		Flags: flags,
+		Name:        "httpserver",
+		Usage:       "Serve API, and metrics",
+		Version:     common.Version,
+		HideVersion: false,
+		Flags:       flags,
 		Action: func(cCtx *cli.Context) error {
 			listenAddr := cCtx.String("listen-addr")
 			metricsAddr := cCtx.String("metrics-addr")
