@@ -1,10 +1,10 @@
+version: "2"
 linters:
   enable-all: true
   disable:
     - cyclop
     - forbidigo
     - funlen
-    - gci
     - gochecknoglobals
     - gochecknoinits
     - gocritic
@@ -39,7 +39,6 @@ linters:
     #
     # Disabled because deprecated:
     #
-    - tenv
 
 linters-settings:
   #
@@ -87,3 +86,19 @@ linters-settings:
       - 'MockBeaconClient'
       - 'RelayAPI'
       - 'Webserver'
+
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  settings:
+    gofumpt:
+      extra-rules: true
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
