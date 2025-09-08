@@ -40,7 +40,7 @@ func Test_Handlers_Healthcheck_Drain_Undrain(t *testing.T) {
 		w := httptest.NewRecorder()
 		s.handleReadinessCheck(w, req)
 		resp := w.Result()
-		defer resp.Body.Close()
+		defer resp.Body.Close() //nolint:errcheck
 		_, err := io.ReadAll(resp.Body)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode, "Healthcheck must return `Ok` before draining")
@@ -53,7 +53,7 @@ func Test_Handlers_Healthcheck_Drain_Undrain(t *testing.T) {
 		s.handleDrain(w, req)
 		duration := time.Since(start)
 		resp := w.Result()
-		defer resp.Body.Close()
+		defer resp.Body.Close() //nolint:errcheck
 		_, err := io.ReadAll(resp.Body)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode, "Must return `Ok` for calls to `/drain`")
@@ -65,7 +65,7 @@ func Test_Handlers_Healthcheck_Drain_Undrain(t *testing.T) {
 		w := httptest.NewRecorder()
 		s.handleReadinessCheck(w, req)
 		resp := w.Result()
-		defer resp.Body.Close()
+		defer resp.Body.Close() //nolint:errcheck
 		_, err := io.ReadAll(resp.Body)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusServiceUnavailable, resp.StatusCode, "Healthcheck must return `Service Unavailable` after draining")
@@ -76,7 +76,7 @@ func Test_Handlers_Healthcheck_Drain_Undrain(t *testing.T) {
 		w := httptest.NewRecorder()
 		s.handleUndrain(w, req)
 		resp := w.Result()
-		defer resp.Body.Close()
+		defer resp.Body.Close() //nolint:errcheck
 		_, err := io.ReadAll(resp.Body)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode, "Must return `Ok` for calls to `/undrain`")
@@ -88,7 +88,7 @@ func Test_Handlers_Healthcheck_Drain_Undrain(t *testing.T) {
 		w := httptest.NewRecorder()
 		s.handleReadinessCheck(w, req)
 		resp := w.Result()
-		defer resp.Body.Close()
+		defer resp.Body.Close() //nolint:errcheck
 		_, err := io.ReadAll(resp.Body)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode, "Healthcheck must return `Ok` after undraining")

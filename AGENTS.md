@@ -6,6 +6,14 @@
 - Artifacts: binaries output to `build/` via Makefile targets. Dockerfiles: `cli.dockerfile`, `httpserver.dockerfile`.
 - Go version: 1.24 (see `go.mod`). Module path: `github.com/flashbots/go-template`.
 
+## Coding Style & Naming Conventions
+- Use tabs instead of spaces for indentation.
+- Always run `make fmt` and `make lint` (and `make test`) before committing.
+- Formatting: run `make fmt` before committing. Go files must pass `golangci-lint` (config in `.golangci.yaml`).
+- Style: idiomatic Go; exported identifiers use CamelCase; packages lower-case short names; errors returned, not panicked.
+- JSON tags: prefer snake_case (configured via `tagliatelle`).
+- Logging: use `common.SetupLogger` (slog) and structured fields; respect `--log-json` and `--log-debug` flags.
+
 ## Build, Test, and Development Commands
 - `make build`: builds CLI and HTTP server into `build/`.
 - `make build-cli` / `make build-httpserver`: build individual binaries.
@@ -14,12 +22,6 @@
 - `make fmt`: apply formatting (`gofmt`, `gci`, `gofumpt`) and `go mod tidy`.
 - `make cover` / `make cover-html`: coverage summary / HTML report.
 - Docker: `make docker-cli`, `make docker-httpserver` build images using the respective Dockerfiles.
-
-## Coding Style & Naming Conventions
-- Formatting: run `make fmt` before committing. Go files must pass `golangci-lint` (config in `.golangci.yaml`).
-- Style: idiomatic Go; exported identifiers use CamelCase; packages lower-case short names; errors returned, not panicked.
-- JSON tags: prefer snake_case (configured via `tagliatelle`).
-- Logging: use `common.SetupLogger` (slog) and structured fields; respect `--log-json` and `--log-debug` flags.
 
 ## Testing Guidelines
 - Framework: standard `testing` with `testify/require` for assertions.
