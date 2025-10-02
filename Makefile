@@ -4,6 +4,20 @@
 
 VERSION := $(shell git describe --tags --always --dirty="-dev")
 
+# Install tools to project-local bin directory
+GOBIN := $(CURDIR)/bin
+export GOBIN
+
+# Extract pinned versions from go.mod (single source of truth)
+define modver
+$(shell go list -m -f '{{.Version}}' $(1))
+endef
+
+# Tool installation targets with pinned versions from go.mod
+GOLANGCI_LINT := github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(call modver,github.com/golangci/golangci-lint/v2)
+STATICCHECK   := honnef.co/go/tools/cmd/staticcheck@$(call modver,honnef.co/go/tools)
+GOFUMPT       := mvdan.cc/gofumpt@$(call modver,mvdan.cc/gofumpt)
+
 ##@ Help
 
 .PHONY: help
@@ -44,25 +58,32 @@ test: ## Run tests
 test-race: ## Run tests with race detector
 	go test -race ./...
 
+.PHONY: install-tools
+install-tools: ## Install development tools from tools/tools.go
+	@echo "Installing tools into $(GOBIN)"
+	go install $(GOLANGCI_LINT)
+	go install $(STATICCHECK)
+	go install $(GOFUMPT)
+
 .PHONY: lint
 lint: ## Run linters
 	gofmt -d -s .
-	gofumpt -d -extra .
+	$(GOBIN)/gofumpt -d -extra .
 	go vet ./...
-	staticcheck ./...
-	golangci-lint run
+	$(GOBIN)/staticcheck ./...
+	$(GOBIN)/golangci-lint run
 	# nilaway ./...
 
 .PHONY: fmt
 fmt: ## Format the code
 	gofmt -s -w .
 	gci write .
-	gofumpt -w -extra .
+	$(GOBIN)/gofumpt -w -extra .
 	go mod tidy
 
 .PHONY: gofumpt
 gofumpt: ## Run gofumpt
-	gofumpt -l -w -extra .
+	$(GOBIN)/gofumpt -l -w -extra .
 
 .PHONY: lt
 lt: lint test ## Run linters and tests
