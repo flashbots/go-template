@@ -2,6 +2,7 @@
 
 [![Goreport status](https://goreportcard.com/badge/github.com/flashbots/go-template)](https://goreportcard.com/report/github.com/flashbots/go-template)
 [![Test status](https://github.com/flashbots/go-template/actions/workflows/checks.yml/badge.svg?branch=main)](https://github.com/flashbots/go-template/actions?query=workflow%3A%22Checks%22)
+[![Docker hub](https://badgen.net/docker/size/flashbots/mev-boost?icon=docker&label=image)](https://hub.docker.com/r/flashbots/mev-boost/tags)
 
 Toolbox and building blocks for new Go projects, to get started quickly and right-footed!
 
