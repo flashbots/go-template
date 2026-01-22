@@ -54,7 +54,7 @@ Migrations are defined as Go code in `database/migrations/` and registered in `m
 ## Implementation Workflow
 
 IMPORTANT: When asked to implement something, always follow through completely:
-1.. Create a feature branch
+1. Create a feature branch
 - based on the latest `main` branch
 - use descriptive branch names like `claude/issue-123-add-feature`
 2. Make the code changes
