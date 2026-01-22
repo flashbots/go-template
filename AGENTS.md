@@ -50,3 +50,16 @@ The server runs two HTTP servers: main API (default :8080) and metrics (default 
 ### Database Migrations
 
 Migrations are defined as Go code in `database/migrations/` and registered in `migrations.Migrations`. They run automatically on database connection unless `DB_DONT_APPLY_SCHEMA` env var is set.
+
+## Implementation Workflow
+
+IMPORTANT: When asked to implement something, always follow through completely:
+1. Create a feature branch
+- based on the latest `main` branch
+- use descriptive branch names like `claude/issue-123-add-feature`
+2. Make the code changes
+3. Commit the changes
+4. Push the branch
+5. Create the PR with `gh pr create --title "..." --body "..."` and reference the issue number in the PR description (e.g., "Closes #123")
+
+Do NOT stop at providing links — complete the entire workflow automatically.
