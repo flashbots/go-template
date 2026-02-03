@@ -11,18 +11,18 @@ func (srv *Server) handleAPI(w http.ResponseWriter, r *http.Request) {
 
 func (srv *Server) handleLivenessCheck(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK")) //nolint:errcheck
+	_, _ = w.Write([]byte("OK")) // Error intentionally ignored - status already sent
 }
 
 func (srv *Server) handleReadinessCheck(w http.ResponseWriter, r *http.Request) {
 	if !srv.isReady.Load() {
 		w.WriteHeader(http.StatusServiceUnavailable)
-		w.Write([]byte("not ready")) //nolint:errcheck
+		_, _ = w.Write([]byte("not ready")) // Error intentionally ignored - status already sent
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK")) //nolint:errcheck
+	_, _ = w.Write([]byte("OK")) // Error intentionally ignored - status already sent
 }
 
 func (srv *Server) handleDrain(w http.ResponseWriter, r *http.Request) {
